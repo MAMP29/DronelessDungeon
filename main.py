@@ -1,6 +1,7 @@
 import pygame
 import pygame_gui
 from pygame_gui.core import ObjectID
+from logic.load_file import load_data
 
 pygame.init()
 
@@ -8,7 +9,7 @@ WIDTH, HEIGHT = 1400, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("RatCheese")
 
-ui_manager = pygame_gui.UIManager((WIDTH, HEIGHT), "Assets/themes.json")
+ui_manager = pygame_gui.UIManager((WIDTH, HEIGHT), "assets/themes.json")
 
 presentation_rect = pygame_gui.elements.UIPanel(
     relative_rect=pygame.Rect((WIDTH - 500 - 50, 50), (500, 300)),  # (X, Y, Ancho, Alto)
@@ -30,6 +31,7 @@ start_button = pygame_gui.elements.UIButton(
     object_id=ObjectID(class_id='@wooden_button', object_id='#start_button'),
 )
 
+
 clock = pygame.time.Clock()
 running = True
 while running:
@@ -40,6 +42,18 @@ while running:
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 print("Start button pressed")
+            if event.ui_element == load_button:
+                file_dialog = pygame_gui.windows.UIFileDialog(
+                    rect=pygame.Rect((400, 200), (600, 400)),  # Tamaño y posición
+                    manager=ui_manager,
+                    initial_file_path=".",
+                )
+
+        if event.type == pygame_gui.UI_FILE_DIALOG_PATH_PICKED:
+            print(f"File path picked: {event.text}")
+            path = event.text
+            load_data(path)
+            file_dialog = None
 
         ui_manager.process_events(event)
 

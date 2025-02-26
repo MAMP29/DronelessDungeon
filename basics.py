@@ -6,9 +6,9 @@ WIDTH, HEIGHT = 1200, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("RatCheese")
 
-image = pygame.image.load("Assets/Sprites/swiss.png") # Cargar imagen
+image = pygame.image.load("assets/sprites/swiss.png") # Cargar imagen
 pygame.mixer.init() # Inicializar mixer
-pygame.mixer.music.load("Assets/Music/background-music-for-mobile-casual-video-game-short-8-bit-music-164703.mp3") # Cargar música
+pygame.mixer.music.load("assets/music/background-music-for-mobile-casual-video-game-short-8-bit-music-164703.mp3") # Cargar música
 pygame.mixer.music.play(1) # Reproducir música, -1 para infinito, 1 para una sola vez
 
 x, y = 100, 100
@@ -20,7 +20,7 @@ clock = pygame.time.Clock()
 class Swiss(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load("Assets/Sprites/swiss.png")
+        self.image = pygame.image.load("assets/sprites/swiss.png")
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = 100, 100
 
