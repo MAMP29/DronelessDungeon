@@ -1,0 +1,24 @@
+{
+  "@wooden_button": {
+    "colours": {
+      "normal_bg": "#a18072",
+      "hovered_bg": "#846358",
+      "disabled_bg": "#493831",
+      "selected_bg": "#ebe3e0",
+      "normal_text": "#000000",
+      "hovered_text": "#FFFFFF",
+      "selected_text": "#FFFFFF",
+      "disabled_text": "#6d736f"
+    }
+  },
+  "#start_button": {
+  },
+  "@wooden_panel": {
+    "colours": {
+      "dark_bg": "#21282D",
+      "normal_border": "#999999"
+    }
+  },
+  "#presentation_panel": {
+  }
+}
