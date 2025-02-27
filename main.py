@@ -2,9 +2,12 @@ import pygame
 import pygame_gui
 from pygame_gui.core import ObjectID
 from logic.load_file import load_data
+from logic.tiles_processer import load_tileset, create_tile_map
+from logic.Maze import draw_maze, generate_fixed_map
 
 pygame.init()
 
+TILE_SIZE = 16
 WIDTH, HEIGHT = 1400, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("RatCheese")
@@ -31,6 +34,13 @@ start_button = pygame_gui.elements.UIButton(
     object_id=ObjectID(class_id='@wooden_button', object_id='#start_button'),
 )
 
+# Cargar titles
+tiles = load_tileset("assets/tiles/dungeon_sheet.png", TILE_SIZE)
+print(len(tiles))
+tile_map = create_tile_map(tiles) if tiles else {}
+maze = None
+fixed_map = None
+obstacle_map = None
 
 clock = pygame.time.Clock()
 running = True
@@ -52,7 +62,8 @@ while running:
         if event.type == pygame_gui.UI_FILE_DIALOG_PATH_PICKED:
             print(f"File path picked: {event.text}")
             path = event.text
-            load_data(path)
+            maze = load_data(path)
+            fixed_map, obstacle_map = generate_fixed_map(maze, tile_map)
             file_dialog = None
 
         ui_manager.process_events(event)
@@ -60,8 +71,12 @@ while running:
     ui_manager.update(time_delta)
     screen.fill((234, 221, 215))
 
+    if "floor" in tile_map and fixed_map is not None:
+        draw_maze(screen, fixed_map, obstacle_map, tile_map, TILE_SIZE)
+
     # pygame.draw.rect(screen, (161, 128, 114), presentation_rect)
     ui_manager.draw_ui(screen)
     pygame.display.flip()
 
 pygame.quit()
+
