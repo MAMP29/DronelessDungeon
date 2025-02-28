@@ -16,20 +16,24 @@ def generate_fixed_map(maze, tile_map):
 
 
 def draw_maze(screen, fixed_map, obstacle_map, tile_map, tile_size):
-    """Dibuja el laberinto en la pantalla usando la matriz fija"""
+    """Dibuja el laberinto en la cheese_imagepantalla usando la matriz fija"""
     rows, cols = fixed_map.shape
     for y in range(rows):
         for x in range(cols):
             cell = fixed_map[y, x]
 
-            # 🔹 Siempre dibujar el piso primero
+            # Siempre dibujar el piso primero
             screen.blit(tile_map["floor"], (x * tile_size, y * tile_size))
 
-            # 🔹 Dibujar los obstáculos fijos
+            # Dibujar los obstáculos fijos
             if (y, x) in obstacle_map:
                 screen.blit(obstacle_map[(y, x)], (x * tile_size, y * tile_size))
 
-            # 🔹 Dibujar los bordes y paredes
+            # Dibujar elementos del juego
+            elif cell == 2:
+                screen.blit(tile_map["cheese"], (x * tile_size, y * tile_size))
+
+            # Dibujar los bordes y paredes
             elif cell == -1:
                 screen.blit(tile_map["top_middle"], (x * tile_size, y * tile_size))
             elif cell == -2:

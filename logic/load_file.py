@@ -44,6 +44,19 @@ def load_data(file_path):
     print(np.array(new_maze))
     return np.array(new_maze)
 
+def control_size(maze):
+    rows, cols = maze.shape
+
+    if rows >= 512 or cols >= 512:
+        return 2
+    elif rows >= 256 or cols >= 256:
+        return 3
+    elif rows >= 128 or cols >= 128:
+        return 4
+    else:
+        return 5
+
+
 
 def load_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:

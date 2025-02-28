@@ -1,8 +1,8 @@
 import pygame
 import pygame_gui
 from pygame_gui.core import ObjectID
-from logic.load_file import load_data
-from logic.tiles_processer import load_tileset, create_tile_map
+from logic.load_file import load_data, control_size
+from logic.tiles_processer import load_tileset, create_tile_map, reload_tileset
 from logic.Maze import draw_maze, generate_fixed_map
 
 pygame.init()
@@ -35,8 +35,8 @@ start_button = pygame_gui.elements.UIButton(
 )
 
 # Cargar titles
-tiles = load_tileset("assets/tiles/dungeon_sheet.png", TILE_SIZE)
-print(len(tiles))
+tiles, new_size = load_tileset("assets/tiles/dungeon_sheet.png", "assets/sprites/swiss.png",TILE_SIZE, scale_factor=1)
+print("Tiles:", len(tiles))
 tile_map = create_tile_map(tiles) if tiles else {}
 maze = None
 fixed_map = None
@@ -63,16 +63,19 @@ while running:
             print(f"File path picked: {event.text}")
             path = event.text
             maze = load_data(path)
+            size = control_size(maze)
+            tiles, new_size = reload_tileset("assets/tiles/dungeon_sheet.png", "assets/sprites/swiss.png",TILE_SIZE, scale_factor=size)
+            tile_map = create_tile_map(tiles) if tiles else {}
             fixed_map, obstacle_map = generate_fixed_map(maze, tile_map)
             file_dialog = None
 
         ui_manager.process_events(event)
 
     ui_manager.update(time_delta)
-    screen.fill((234, 221, 215))
+    screen.fill((47, 40, 58))
 
     if "floor" in tile_map and fixed_map is not None:
-        draw_maze(screen, fixed_map, obstacle_map, tile_map, TILE_SIZE)
+        draw_maze(screen, fixed_map, obstacle_map, tile_map, new_size)
 
     # pygame.draw.rect(screen, (161, 128, 114), presentation_rect)
     ui_manager.draw_ui(screen)
