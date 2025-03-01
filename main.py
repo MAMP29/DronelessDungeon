@@ -1,9 +1,9 @@
 import pygame
 import pygame_gui
 from pygame_gui.core import ObjectID
-from logic.load_file import load_data, control_size
-from logic.tiles_processer import load_tileset, create_tile_map, reload_tileset
-from logic.Maze import draw_maze, generate_fixed_map
+from logic.MazeLoader import MazeLoader
+from logic.TileProcessor import TileProcessor
+from logic.MazeDrawer import MazeDrawer
 
 pygame.init()
 
@@ -35,12 +35,16 @@ start_button = pygame_gui.elements.UIButton(
 )
 
 # Cargar titles
-tiles, new_size = load_tileset("assets/tiles/dungeon_sheet.png", "assets/sprites/swiss.png",TILE_SIZE, scale_factor=1)
-print("Tiles:", len(tiles))
-tile_map = create_tile_map(tiles) if tiles else {}
-maze = None
-fixed_map = None
-obstacle_map = None
+# tiles, new_size = load_tileset("assets/tiles/dungeon_sheet.png", "assets/sprites/swiss.png",TILE_SIZE, scale_factor=2)
+# print("Tiles:", len(tiles))
+# tile_map = create_tile_map(tiles) if tiles else {}
+# maze = None
+# fixed_map = None
+# obstacle_map = None
+
+tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites/swiss.png", TILE_SIZE, scale_factor=4)
+maze_loader = MazeLoader()
+maze_drawer = MazeDrawer(tile_map = tile_processor.create_tile_map(), tile_size=tile_processor.new_size)
 
 clock = pygame.time.Clock()
 running = True
@@ -61,12 +65,17 @@ while running:
 
         if event.type == pygame_gui.UI_FILE_DIALOG_PATH_PICKED:
             print(f"File path picked: {event.text}")
-            path = event.text
-            maze = load_data(path)
-            size = control_size(maze)
-            tiles, new_size = reload_tileset("assets/tiles/dungeon_sheet.png", "assets/sprites/swiss.png",TILE_SIZE, scale_factor=size)
-            tile_map = create_tile_map(tiles) if tiles else {}
-            fixed_map, obstacle_map = generate_fixed_map(maze, tile_map)
+            # path = event.text
+            # maze = load_data(path)
+            # size = control_size(maze)
+            # tiles, new_size = reload_tileset("assets/tiles/dungeon_sheet.png", "assets/sprites/swiss.png",TILE_SIZE, scale_factor=size)
+            # tile_map = create_tile_map(tiles) if tiles else {}
+            # fixed_map, obstacle_map = generate_fixed_map(maze, tile_map)
+            maze_loader.file_path = event.text
+            maze_loader.load_maze()
+            tile_processor.reload_tileset()
+            maze_drawer.maze = maze_loader.render_maze
+            maze_drawer.generate_fixed_map()
             file_dialog = None
 
         ui_manager.process_events(event)
@@ -74,8 +83,9 @@ while running:
     ui_manager.update(time_delta)
     screen.fill((47, 40, 58))
 
-    if "floor" in tile_map and fixed_map is not None:
-        draw_maze(screen, fixed_map, obstacle_map, tile_map, new_size)
+    if  maze_drawer.maze is not None:
+        #draw_maze(screen, fixed_map, obstacle_map, tile_map, new_size)
+        maze_drawer.draw_maze(screen)
 
     # pygame.draw.rect(screen, (161, 128, 114), presentation_rect)
     ui_manager.draw_ui(screen)
