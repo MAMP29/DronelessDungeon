@@ -42,7 +42,8 @@ start_button = pygame_gui.elements.UIButton(
 # fixed_map = None
 # obstacle_map = None
 
-tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites/swiss.png", TILE_SIZE, scale_factor=4)
+tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites/dron-shadow.png",
+                               "assets/sprites/electric_field1.png", TILE_SIZE, scale_factor=4)
 maze_loader = MazeLoader()
 maze_drawer = MazeDrawer(tile_map = tile_processor.create_tile_map(), tile_size=tile_processor.new_size)
 
