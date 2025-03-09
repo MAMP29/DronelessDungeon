@@ -2,6 +2,7 @@ import pygame
 import pygame_gui
 from pygame_gui.core import ObjectID
 from logic.MazeLoader import MazeLoader
+from logic.MazeSolver import MazeSolver
 from logic.TileProcessor import TileProcessor
 from logic.MazeDrawer import MazeDrawer
 
@@ -46,6 +47,7 @@ tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites
                                "assets/sprites/electric_field1.png", TILE_SIZE, scale_factor=4)
 maze_loader = MazeLoader()
 maze_drawer = MazeDrawer(tile_map = tile_processor.create_tile_map(), tile_size=tile_processor.new_size)
+maze_solver = 0
 
 clock = pygame.time.Clock()
 running = True
@@ -56,7 +58,9 @@ while running:
             running = False
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
-                print("Start button pressed")
+                if maze_solver:
+                    maze_solver.bfs()
+
             if event.ui_element == load_button:
                 file_dialog = pygame_gui.windows.UIFileDialog(
                     rect=pygame.Rect((400, 200), (600, 400)),  # Tamaño y posición
@@ -74,6 +78,7 @@ while running:
             # fixed_map, obstacle_map = generate_fixed_map(maze, tile_map)
             maze_loader.file_path = event.text
             maze_loader.load_maze()
+            maze_solver = MazeSolver(maze_loader)
             tile_processor.reload_tileset()
             maze_drawer.maze = maze_loader.render_maze
             maze_drawer.generate_fixed_map()
