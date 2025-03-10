@@ -7,3 +7,7 @@ __pycache__/
 basics_tyles.py
 logic/firsLoad.txt
 logic/segugLoad.txt
+
+venv/
+mi_env/
+.env/
