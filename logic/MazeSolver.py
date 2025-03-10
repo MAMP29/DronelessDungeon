@@ -27,9 +27,11 @@ class MazeSolver:
             # Matriz booleana para las posiciones, basada en la matriz original pero con puros ceros
             #self.visited = np.zeros_like(self.matriz, dtype=bool)
 
-            # Movimiento, arriba, abajo, izquierda y derecha
+            # Movimiento, [0] arriba, [1] abajo, [2] derecha y [3] izquierda
             self.moves_row = np.array([-1, 1, 0, 0])
             self.moves_column = np.array([0, 0, 1, -1])
+            self.type_moven = ["Arriba", "Abajo", "Derecha", "Izquierda"]
+            self.type_box = ["Libre", "Obstáculo", "Inicio", "Campo electromagnético", "Paquete"]
 
     def reset(self):
         """Resetea los valores para poder ejecutar el algoritmo nuevamente"""
@@ -50,9 +52,9 @@ class MazeSolver:
         self.reset()
 
         visited = set()
-
-        self.rowCowPaDeque.append((self.sr, self.sc, frozenset()))
-        visited.add((self.sr, self.sc, frozenset()))
+        #cada nodo tiene (row, column, packages, cost, type moven , parent)
+        self.rowCowPaDeque.append((self.sr, self.sc, frozenset(), 0, -1, None))
+        visited.add((self.sr, self.sc, frozenset(), 0, -1, None))
 
 
 
@@ -61,10 +63,10 @@ class MazeSolver:
         #print(f"Entrando a bfs {type(self.matriz)}")
         while len(self.rowCowPaDeque) > 0: # Puede ser len(self.cq) > 0 pues se mueven igual
             # Extraemos las posiciones
-            r, c, packages = self.rowCowPaDeque.popleft()
+            r, c, packages, cost, typemoven, parent = self.rowCowPaDeque.popleft()
             self.expanded_nodes += 1  # Se expandió un nodo
 
-            print(f"Explorando nodo ({r}, {c}) con {len(packages)} paquetes recogidos")
+            
 
             #print("En ciclo" + type(self.matriz))
 
@@ -75,7 +77,7 @@ class MazeSolver:
 
                 new_packages = frozenset(list(packages) + [(r,c)])
 
-                print(f"Número de objetivos alcanzados {packages}")
+                print(f"Número de objetivos alcanzados {len(packages)}")
                 print(f"Paquete encontrado en: ({r}, {c})")
 
                 #self.matriz[r, c] = 0
@@ -83,20 +85,22 @@ class MazeSolver:
 
                 if len(new_packages) == self.number_of_objetives:
                     self.reached_end = True
-                    print(f"S quedó en: ({r}, {c})")
+                    #print(f"S quedó en: ({r}, {c})")
+                    print(f"SOLUCION: Nodo=({r},{c}) - paquetes={len(new_packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
                     break
                 #print(f"En paquete 2 {type(self.matriz)}")
 
                 # self.visited = TODO: HACER QUE LA POSICIÓN PASADA SEA UNA OPCIÓN PARA DEVOLVERSE
-                new_state = (r,c, new_packages)
-                if new_state not in visited:
-                    self.rowCowPaDeque.append(new_state)
-                    visited.add(new_state)
-                    self.nodes_next_in_layer += 1
+                new_state = (r,c, new_packages, cost, typemoven, parent)
+                #if new_state not in visited:
+                self.rowCowPaDeque.append(new_state)
+                visited.add(new_state)
+                self.nodes_next_in_layer += 1
 
-            self.explore_neighbours(r, c, packages, visited)
+            print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
+            self.explore_neighbours(r, c, packages, cost, visited)
             self.nodes_left_in_layer-=1 # Quita un nodo restante
-
+            print(f"nodos  {self.nodes_left_in_layer}")
             # Controla el avance al siguiente nivel, solo carga los que siguen al actual y suma profundidad
             if self.nodes_left_in_layer == 0:
                 self.nodes_left_in_layer = self.nodes_next_in_layer
@@ -114,7 +118,7 @@ class MazeSolver:
         print(f"Movimientos {self.move_count}")
         return None
 
-    def explore_neighbours(self, r, c, packages, visited):
+    def explore_neighbours(self, r, c, packages, cost, visited):
         #print(f"Explorando vecinos {type(self.matriz)}")
 
         for i in range(4):
@@ -128,11 +132,12 @@ class MazeSolver:
             new_state = (rr, cc, packages)
 
             #print(f"Ciclo explorando vecinos {type(self.matriz)}")
-            if new_state in visited: continue
+            #if new_state in visited: continue
+            if any(nodo[:3] == new_state for nodo in visited): continue
             if self.matriz[rr, cc] == 1: continue
 
-            print(f"Vecino explorado: ({rr}, {cc}) -> {self.matriz[rr, cc]}")
-
+            print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: "+self.type_box[self.matriz[rr, cc]])
+            new_state = new_state + (cost + 1, i, (int(r),int(c)))
             self.rowCowPaDeque.append(new_state)
             visited.add(new_state)
             self.nodes_next_in_layer+=1
