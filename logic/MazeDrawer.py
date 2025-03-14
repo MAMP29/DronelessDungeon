@@ -49,7 +49,7 @@ class MazeDrawer:
         elif cell == 2:
             screen.blit(self.tile_map["searcher"], (x * self.tile_size, y * self.tile_size))
         elif cell == 3:
-            screen.blit(self.tile_map["danger"], (x * self.tile_size, y * self.tile_size))
+            screen.blit(random.choice(self.tile_map["danger"]), (x * self.tile_size, y * self.tile_size))
         elif cell == 4:
             screen.blit(self.tile_map["objetive"], (x * self.tile_size, y * self.tile_size))
         elif cell in self._border_tiles:

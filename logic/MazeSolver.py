@@ -1,4 +1,6 @@
 from collections import deque
+from typing import Deque
+
 from logic.Node import Node
 import numpy as np
 
@@ -11,7 +13,7 @@ class MazeSolver:
             self.R, self.C = np.shape(self.matriz) # Filas y Columnas
             self.sr, self.sc = map(int, np.where(self.matriz == 2)) # Lugar del buscador (dron)
 
-            self.rowCowPaDeque = deque()
+            self.rowCowPaDeque = None # Como algunas funciones no usan una cola directamente, inicializaremos este componente en el reset()
 
             # Variables para seguir el número de pasos tomados
             self.move_count = 0
@@ -25,7 +27,7 @@ class MazeSolver:
             self.reached_end = False
 
             # Matriz booleana para las posiciones, basada en la matriz original pero con puros ceros
-            #self.visited = np.zeros_like(self.matriz, dtype=bool)
+            #self.visited = np.zeros_like(self.matriz, dtype=bool)        self.rowCowPaDeque: Deque[int] = deque()  # Especifica el tipo (int, str, etc.)
 
             # Movimiento, [0] arriba, [1] abajo, [2] derecha y [3] izquierda
             self.moves_row = np.array([-1, 1, 0, 0])
@@ -33,8 +35,14 @@ class MazeSolver:
             self.type_moven = ["Arriba", "Abajo", "Derecha", "Izquierda"]
             self.type_box = ["Libre", "Obstáculo", "Inicio", "Campo electromagnético", "Paquete"]
 
-    def reset(self):
-        """Resetea los valores para poder ejecutar el algoritmo nuevamente"""
+    def reset(self, algorithm_type):
+        """Resetea los valores para poder ejecutar el algoritmo nuevamente. Con base en la estructura de datos que se necesita para almacenar los nodos,
+        reset la carga, por lo que es indispensable que esté en el inicio de la función"""
+        if algorithm_type == "bst":
+            self.rowCowPaDeque = deque()
+        if algorithm_type == "ucs":
+            self.rowCowPaDeque = []
+
         self.rowCowPaDeque.clear()
         self.move_count = 0
         self.expanded_nodes = 0
@@ -49,14 +57,12 @@ class MazeSolver:
         print(f"Número de objetivos alcanzados antes {self.number_of_objetives_reached}")
         print(f"columnas {self.C} y filas {self.R}")
 
-        self.reset()
+        self.reset("bst")
 
         visited = set()
         #cada nodo tiene (row, column, packages, cost, type moven , parent)
         self.rowCowPaDeque.append((self.sr, self.sc, frozenset(), 0, -1, None))
         visited.add((self.sr, self.sc, frozenset(), 0, -1, None))
-
-
 
         # visited[self.sr, self.sc] = True
 
@@ -136,8 +142,80 @@ class MazeSolver:
             if any(nodo[:3] == new_state for nodo in visited): continue
             if self.matriz[rr, cc] == 1: continue
 
+            if self.type_box[self.matriz[rr,cc]] == "Campo electromagnético": cost+=8 # Ahora tiene en cuenta el costo del campo electromagnético
+            # print(f"MIRA MI CAMPO {self.type_box[self.matriz[rr, cc]] == "Campo electromagnético"}")
+
+
             print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: "+self.type_box[self.matriz[rr, cc]])
             new_state = new_state + (cost + 1, i, (int(r),int(c)))
             self.rowCowPaDeque.append(new_state)
             visited.add(new_state)
             self.nodes_next_in_layer+=1
+
+    def ucs(self):
+        print(f"Numero de objetivos {self.number_of_objetives}")
+        print(f"Número de objetivos alcanzados antes {self.number_of_objetives_reached}")
+        print(f"columnas {self.C} y filas {self.R}")
+
+        self.reset("ucs")
+
+        visited = set()
+        self.rowCowPaDeque.append((self.sr, self.sc, frozenset(), 0, -1, None))
+        visited.add((self.sr, self.sc, frozenset(), 0, -1, None))
+
+
+        while len(self.rowCowPaDeque) > 0:
+            costo_menor = min(self.rowCowPaDeque, key=lambda x: x[3])
+            self.rowCowPaDeque.remove(costo_menor)
+            r, c, packages, cost, typemoven, parent = costo_menor
+            self.expanded_nodes += 1 #
+
+            if self.matriz[r, c] == 4 and (r, c) not in packages:
+                # print(f"En paquete {type(self.matriz)}")
+
+                # self.number_of_objetives_reached+=1
+
+                new_packages = frozenset(list(packages) + [(r, c)])
+
+                print(f"Número de objetivos alcanzados {len(packages)}")
+                print(f"Paquete encontrado en: ({r}, {c})")
+
+                # self.matriz[r, c] = 0
+                # print(self.matriz)
+
+                if len(new_packages) == self.number_of_objetives:
+                    self.reached_end = True
+                    # print(f"S quedó en: ({r}, {c})")
+                    print(
+                        f"SOLUCION: Nodo=({r},{c}) - paquetes={len(new_packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
+                    break
+                # print(f"En paquete 2 {type(self.matriz)}")
+
+                # self.visited = TODO: HACER QUE LA POSICIÓN PASADA SEA UNA OPCIÓN PARA DEVOLVERSE
+                new_state = (r, c, new_packages, cost, typemoven, parent)
+                # if new_state not in visited:
+                self.rowCowPaDeque.append(new_state)
+                visited.add(new_state)
+                self.nodes_next_in_layer += 1
+
+            print(
+                f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
+            self.explore_neighbours(r, c, packages, cost, visited)
+            self.nodes_left_in_layer -= 1  # Quita un nodo restante
+            print(f"nodos  {self.nodes_left_in_layer}")
+            # Controla el avance al siguiente nivel, solo carga los que siguen al actual y suma profundidad
+            if self.nodes_left_in_layer == 0:
+                self.nodes_left_in_layer = self.nodes_next_in_layer
+                self.nodes_next_in_layer = 0  # Reseteamos los nodos siguientes
+                self.move_count += 1
+
+        # print(f"Fuera de ciclo f{type(self.matriz)}")
+
+        if self.reached_end:
+            print(f"Terminado, profundidad: {self.move_count}")
+            print(f"Nodos expandidos: {self.expanded_nodes}")
+            return self.move_count
+
+        print("No se encontró la solución")
+        print(f"Movimientos {self.move_count}")
+        return None

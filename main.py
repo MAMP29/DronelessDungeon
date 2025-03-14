@@ -44,7 +44,8 @@ start_button = pygame_gui.elements.UIButton(
 # obstacle_map = None
 
 tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites/dron-shadow.png",
-                               "assets/sprites/electric_field1.png", TILE_SIZE, scale_factor=4)
+                               "assets/sprites/electric_field1.png", TILE_SIZE, scale_factor=4,
+                               danger_file2="assets/sprites/electric_field2.png", danger_file3="assets/sprites/electric_field3.png")
 maze_loader = MazeLoader()
 maze_drawer = MazeDrawer(tile_map = tile_processor.create_tile_map(), tile_size=tile_processor.new_size)
 maze_solver = 0
