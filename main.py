@@ -60,7 +60,7 @@ while running:
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 if maze_solver:
-                    maze_solver.bfs()
+                    maze_solver.ucs()
 
             if event.ui_element == load_button:
                 file_dialog = pygame_gui.windows.UIFileDialog(
