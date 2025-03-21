@@ -54,3 +54,17 @@ class MazeDrawer:
             screen.blit(self.tile_map["objetive"], (x * self.tile_size, y * self.tile_size))
         elif cell in self._border_tiles:
             screen.blit(self.tile_map[self._border_tiles[cell]], (x * self.tile_size, y * self.tile_size))
+        
+    def move_charanter(self, inir ,inic, newr, newc):
+        element = 0
+        package_fixed = [(2, 4) , (2, 5), (8, 6)]
+        electro_fixed = [(2, 3) , (6, 0), (6, 1)]
+        if (inir, inic) in package_fixed: element = 4
+        if (inir, inic) in electro_fixed: element = 3
+        inir +=2
+        inic +=1
+        newr +=2
+        newc +=1
+        self.fixed_map[inir, inic] = element
+        self.fixed_map[newr, newc] = 2
+

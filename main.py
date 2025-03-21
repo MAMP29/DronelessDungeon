@@ -1,5 +1,6 @@
 import pygame
 import pygame_gui
+import time
 from pygame_gui.core import ObjectID
 from logic.MazeLoader import MazeLoader
 from logic.MazeSolver import MazeSolver
@@ -60,6 +61,10 @@ while running:
             if event.ui_element == start_button:
                 if maze_solver:
                     maze_solver.bfs()
+                    pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
+
+                    #time.sleep(2)
+                    #maze_drawer.move_charanter(2, 1, 2, 2)
 
             if event.ui_element == load_button:
                 file_dialog = pygame_gui.windows.UIFileDialog(
@@ -78,7 +83,7 @@ while running:
             # fixed_map, obstacle_map = generate_fixed_map(maze, tile_map)
             maze_loader.file_path = event.text
             maze_loader.load_maze()
-            maze_solver = MazeSolver(maze_loader)
+            maze_solver = MazeSolver(maze_loader, maze_drawer)
             tile_processor.reload_tileset()
             maze_drawer.maze = maze_loader.render_maze
             maze_drawer.generate_fixed_map()
