@@ -4,10 +4,12 @@ class TileProcessor:
 
     """ Representa el conjunto de tiles y sus respectivos tamaños, tamaño de la imagen y escala de los tiles."""
 
-    def __init__(self, assets_file, searcher_file, danger_file, tile_size, scale_factor=4):
+    def __init__(self, assets_file, searcher_file, danger_file, tile_size, scale_factor=4, danger_file2=None, danger_file3=None):
         self.assets_file = assets_file
         self.searcher_file = searcher_file
         self.danger_file = danger_file
+        self.danger_file2 = danger_file2
+        self.danger_file3 = danger_file3
         #self.objetive_file = None #Como el objetivo viene el asset_file no lo cargamos en la clase, pero aquí esta función en caso de que lo necesitemos
         self.tile_size = tile_size
         self.scale_factor = scale_factor
@@ -20,6 +22,8 @@ class TileProcessor:
         tileset_image = pygame.image.load(self.assets_file).convert_alpha()
         searcher_image = pygame.image.load(self.searcher_file).convert_alpha()
         danger_image = pygame.image.load(self.danger_file).convert_alpha()
+        danger_image2 = pygame.image.load(self.danger_file2).convert_alpha()
+        danger_image3 = pygame.image.load(self.danger_file3).convert_alpha()
 
         tileset_width, tileset_height = tileset_image.get_size()
 
@@ -35,9 +39,13 @@ class TileProcessor:
         # Cargar y escalar el queso
         searcher_image = pygame.transform.scale(searcher_image, (self.new_size, self.new_size))
         danger_image = pygame.transform.scale(danger_image, (self.new_size, self.new_size))
+        danger_image2 = pygame.transform.scale(danger_image2, (self.new_size, self.new_size))
+        danger_image3 = pygame.transform.scale(danger_image3, (self.new_size, self.new_size))
 
         self.tiles["searcher"] = self.tiles[188]
         self.tiles["danger"] = danger_image
+        self.tiles["danger2"] = danger_image2
+        self.tiles["danger3"] = danger_image3
 
         self.tiles["objetive"] = self.tiles[182]
 
@@ -47,7 +55,7 @@ class TileProcessor:
 
 
     def create_tile_map(self):
-        """Crea el mapeo de tiles en base a los índices dados"""
+        """Crea el mapeo de tiles con base en los índices dados"""
         return {
             "floor": self.tiles[54],
             "obstacle": [self.tiles[154], self.tiles[183]], #, self.tiles[162], self.tiles[183], self.tiles[184], self.tiles[185], self.tiles[186]
@@ -71,7 +79,7 @@ class TileProcessor:
 
             # Elementos del juego
             "searcher": self.tiles["searcher"],
-            "danger": self.tiles["danger"],
+            "danger": [self.tiles["danger"], self.tiles["danger2"], self.tiles["danger3"]],
             "objetive": self.tiles["objetive"],
         }
 
