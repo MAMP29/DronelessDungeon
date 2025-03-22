@@ -116,7 +116,7 @@ class MazeSolver:
                 new_state = (r, c, new_packages, cost, typemoven, parent)
                 # if new_state not in visited:
                 self.rowCowPaDeque.append(new_state)
-                visited.add(new_state)
+                visited.insert(0, new_state)
                 self.nodes_next_in_layer += 1
 
             #print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
@@ -270,11 +270,8 @@ class MazeSolver:
             print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
 
             heapq.heappush(self.rowCowPaDeque, (new_cost, counter, rr, cc, packages, i, (int(r), int(c))))
-            visited.add(new_state)
 
-            #visited.add(new_state)
-            visited.insert(0,new_state)
-            self.nodes_next_in_layer+=1
+            visited.add(new_state)
 
     def get_solution(self, rr, cc, lenpackage, visited):
         print(f"get_solucition: {len(visited)}")
