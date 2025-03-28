@@ -1,5 +1,7 @@
 import heapq
+import itertools
 from collections import deque
+from logic.solutions_builders import get_solution_from_list, get_solution_from_dict
 from typing import Deque
 
 from logic.Node import Node
@@ -81,18 +83,16 @@ class MazeSolver:
 
             #print("En ciclo" + type(self.matriz))
 
-            if self.matriz[r, c] == 4 and (r, c) not in packages:
-                # print(f"En paquete {type(self.matriz)}")
+            if self.matriz[r, c] == 4 and (r,c) not in packages:
+                #print(f"En paquete {type(self.matriz)}")
 
                 # self.number_of_objetives_reached+=1
 
-                new_packages = frozenset(list(packages) + [(r, c)])
+                new_packages = frozenset(list(packages) + [(r,c)])
 
                 print(f"Número de objetivos alcanzados {len(packages)}")
                 print(f"Paquete encontrado en: ({r}, {c})")
 
-                # self.matriz[r, c] = 0
-                # print(self.matriz)
                 # self.visited = TODO: HACER QUE LA POSICIÓN PASADA SEA UNA OPCIÓN PARA DEVOLVERSE
                 new_state = (r,c, new_packages, cost, typemoven, parent)
                 #if new_state not in visited:
@@ -108,16 +108,8 @@ class MazeSolver:
                     self.reached_end = True
                     #print(f"S quedó en: ({r}, {c})")
                     print(f"SOLUCION: Nodo=({r},{c}) - paquetes={len(new_packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
-                    self.get_solution(r, c, len(new_packages), visited)
                     break
-                # print(f"En paquete 2 {type(self.matriz)}")
-
-                # self.visited = TODO: HACER QUE LA POSICIÓN PASADA SEA UNA OPCIÓN PARA DEVOLVERSE
-                new_state = (r, c, new_packages, cost, typemoven, parent)
-                # if new_state not in visited:
-                self.rowCowPaDeque.append(new_state)
-                visited.insert(0, new_state)
-                self.nodes_next_in_layer += 1
+                #print(f"En paquete 2 {type(self.matriz)}")
 
             #print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
             self.explore_neighbours(r, c, packages, cost, visited)
@@ -134,6 +126,7 @@ class MazeSolver:
         if self.reached_end:
             print(f"Terminado, profundidad: {self.move_count}")
             print(f"Nodos expandidos: {self.expanded_nodes}")
+            self.solution = get_solution_from_list(r, c, visited, 'bfs')
             self.run_solution()
             return self.move_count
 
@@ -159,8 +152,7 @@ class MazeSolver:
             if any(nodo[:3] == new_state for nodo in visited): continue
             if self.matriz[rr, cc] == 1: continue
 
-            if self.type_box[self.matriz[
-                rr, cc]] == "Campo electromagnético": cost += 8  # Ahora tiene en cuenta el costo del campo electromagnético
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": cost += 8  # Ahora tiene en cuenta el costo del campo electromagnético
             # print(f"MIRA MI CAMPO {self.type_box[self.matriz[rr, cc]] == "Campo electromagnético"}")
 
             #print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: "+self.type_box[self.matriz[rr, cc]])
@@ -175,75 +167,59 @@ class MazeSolver:
         print(f"Numero de objetivos {self.number_of_objetives}")
         print(f"Número de objetivos alcanzados antes {self.number_of_objetives_reached}")
         print(f"columnas {self.C} y filas {self.R}")
-
         self.reset("ucs")
-
-        visited = set()
-
         counter = 0
-
         # El costo va de primero como prioridad, luego le sigue un contador en caso de empate
         heapq.heappush(self.rowCowPaDeque, (0, counter, self.sr, self.sc, frozenset(), -1, None))
-        visited.add((self.sr, self.sc, frozenset()))
+
+        # Cambio: en lugar de usar una lista simple, usamos un diccionario para almacenar
+        # los estados visitados con sus padres y otra información relevante
+        visited = {(self.sr, self.sc, frozenset()): (None, 0, -1)}
+
+        final_node = None
+        final_cost = None
+        final_packages = None
 
         while len(self.rowCowPaDeque) > 0:
-
             cost, _, r, c, packages, typemoven, parent = heapq.heappop(self.rowCowPaDeque)
-            self.expanded_nodes += 1  #
+            self.expanded_nodes += 1
 
-            # Verificar si este estado ya lo procesamos lo puse como control
+            # Verificamos si ya encontramos una solución con menor costo
             current_state = (r, c, packages)
-            if current_state not in visited:
-                continue  # Si ya lo visitamos, pasamos al siguiente
 
             if self.matriz[r, c] == 4 and (r, c) not in packages:
-                # print(f"En paquete {type(self.matriz)}")
-
-                # self.number_of_objetives_reached+=1
-
                 new_packages = frozenset(list(packages) + [(r, c)])
-
                 print(f"Número de objetivos alcanzados {len(packages)}")
                 print(f"Paquete encontrado en: ({r}, {c})")
 
-                # self.matriz[r, c] = 0
-                # print(self.matriz)
-
                 if len(new_packages) == self.number_of_objetives:
                     self.reached_end = True
-                    # print(f"S quedó en: ({r}, {c})")
-                    print(
-                        f"SOLUCION: Nodo=({r},{c}) - paquetes={len(new_packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
+                    print(f"SOLUCION: Nodo=({r},{c}) - paquetes={len(new_packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
+                    final_node = (r, c)
+                    final_cost = cost
+                    final_packages = new_packages
                     break
-                # print(f"En paquete 2 {type(self.matriz)}")
 
-                counter += 1
-
-                # self.visited = TODO: HACER QUE LA POSICIÓN PASADA SEA UNA OPCIÓN PARA DEVOLVERSE
                 new_state = (r, c, new_packages)
+                if new_state not in visited or cost < visited[new_state][1]:
+                    counter += 1
+                    heapq.heappush(self.rowCowPaDeque, (cost, counter, r, c, new_packages, typemoven, (int(r), int(c))))
+                    visited[new_state] = ((int(r), int(c)), cost, typemoven)
 
-                # if new_state not in visited: <- control
-                counter += 1
-                heapq.heappush(self.rowCowPaDeque, (cost, counter, r, c, new_packages, typemoven, parent))
-                visited.add(new_state)
-
-            print(
-                f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
-            self.explore_neighbours_usc(r, c, packages, cost, visited, counter)
-
-        # print(f"Fuera de ciclo f{type(self.matriz)}")
+            print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
+            self.explore_neighbours_ucs(r, c, packages, cost, visited, counter)
 
         if self.reached_end:
-            print(f"Terminado, profundidad: {self.move_count}")
+            print(f"Terminado, costo: {final_cost}")
             print(f"Nodos expandidos: {self.expanded_nodes}")
-            return cost
+            self.solution = get_solution_from_dict(self.matriz, final_node, final_packages, visited)
+            self.run_solution()
+            return final_cost
 
         print("No se encontró la solución")
-        print(f"Movimientos {self.move_count}")
         return None
 
-    def explore_neighbours_usc(self, r, c, packages, cost, visited, counter):
-
+    def explore_neighbours_ucs(self, r, c, packages, cost, visited, counter):
         for i in range(4):
             # Posición actual
             rr = r + self.moves_row[i]
@@ -251,42 +227,20 @@ class MazeSolver:
 
             if rr < 0 or cc < 0: continue
             if rr >= self.R or cc >= self.C: continue
+            if self.matriz[rr, cc] == 1: continue
 
             new_state = (rr, cc, packages)
 
-            # print(f"Ciclo explorando vecinos {type(self.matriz)}")
-            # if new_state in visited: continue
-            if new_state in visited: continue
-            if self.matriz[rr, cc] == 1: continue
-
             additional_cost = 1
-
-            if self.type_box[self.matriz[
-                rr, cc]] == "Campo electromagnético": additional_cost += 8  # Ahora tiene en cuenta el costo del campo electromagnético
-
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético":additional_cost += 8
             new_cost = additional_cost + cost
-            counter += 1
 
-            print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
-
-            heapq.heappush(self.rowCowPaDeque, (new_cost, counter, rr, cc, packages, i, (int(r), int(c))))
-
-            visited.add(new_state)
-
-    def get_solution(self, rr, cc, lenpackage, visited):
-        print(f"get_solucition: {len(visited)}")
-        for nodo in visited:
-            r, c, packages, cost, typemoven, parent = nodo
-            #if r == rr and c == cc and lenpackage == len(packages):
-            if r == rr and c == cc:
-                self.solution.insert(0, [rr, cc])
-                if parent is not None:
-                    rr = parent[0]
-                    cc = parent[1]
-                    #lenpackage -= 1
-                else:
-                    print("Llegamos al nodo inicial")
-                    break
+            # Solo expandimos si no hemos visitado este estado o si tenemos un camino mejor
+            if new_state not in visited or new_cost < visited[new_state][1]:
+                counter += 1
+                print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
+                heapq.heappush(self.rowCowPaDeque, (new_cost, counter, rr, cc, packages, i, (int(r), int(c))))
+                visited[new_state] = ((int(r), int(c)), new_cost, i)
 
 
 
