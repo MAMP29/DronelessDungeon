@@ -61,7 +61,7 @@ while running:
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 if maze_solver:
-                    maze_solver.ucs()
+                    maze_solver.gbfs()
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
 
                     #time.sleep(2)
