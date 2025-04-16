@@ -1,6 +1,5 @@
 import pygame
 import pygame_gui
-import time
 from pygame_gui.core import ObjectID
 from logic.MazeLoader import MazeLoader
 from logic.MazeSolver import MazeSolver
