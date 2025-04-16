@@ -4,9 +4,8 @@ class TileProcessor:
 
     """ Representa el conjunto de tiles y sus respectivos tamaños, tamaño de la imagen y escala de los tiles."""
 
-    def __init__(self, assets_file, searcher_file, danger_file, tile_size, scale_factor=4, danger_file2=None, danger_file3=None):
+    def __init__(self, assets_file, danger_file, tile_size, scale_factor=4, danger_file2=None, danger_file3=None):
         self.assets_file = assets_file
-        self.searcher_file = searcher_file
         self.danger_file = danger_file
         self.danger_file2 = danger_file2
         self.danger_file3 = danger_file3
@@ -20,7 +19,6 @@ class TileProcessor:
     def load_tileset(self):
         """Carga los tiles desde la imagen y los almacena en un diccionario"""
         tileset_image = pygame.image.load(self.assets_file).convert_alpha()
-        searcher_image = pygame.image.load(self.searcher_file).convert_alpha()
         danger_image = pygame.image.load(self.danger_file).convert_alpha()
         danger_image2 = pygame.image.load(self.danger_file2).convert_alpha()
         danger_image3 = pygame.image.load(self.danger_file3).convert_alpha()
@@ -37,7 +35,6 @@ class TileProcessor:
                 tile_id += 1
 
         # Cargar y escalar el queso
-        searcher_image = pygame.transform.scale(searcher_image, (self.new_size, self.new_size))
         danger_image = pygame.transform.scale(danger_image, (self.new_size, self.new_size))
         danger_image2 = pygame.transform.scale(danger_image2, (self.new_size, self.new_size))
         danger_image3 = pygame.transform.scale(danger_image3, (self.new_size, self.new_size))

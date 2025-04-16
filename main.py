@@ -36,17 +36,10 @@ start_button = pygame_gui.elements.UIButton(
     object_id=ObjectID(class_id='@wooden_button', object_id='#start_button'),
 )
 
-# Cargar titles
-# tiles, new_size = load_tileset("assets/tiles/dungeon_sheet.png", "assets/sprites/swiss.png",TILE_SIZE, scale_factor=2)
-# print("Tiles:", len(tiles))
-# tile_map = create_tile_map(tiles) if tiles else {}
-# maze = None
-# fixed_map = None
-# obstacle_map = None
 
-tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites/dron-shadow.png",
-                               "assets/sprites/electric_field1.png", TILE_SIZE, scale_factor=4,
-                               danger_file2="assets/sprites/electric_field2.png", danger_file3="assets/sprites/electric_field3.png")
+tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites/electric_field1.png",
+                               TILE_SIZE, scale_factor=4, danger_file2="assets/sprites/electric_field2.png",
+                               danger_file3="assets/sprites/electric_field3.png")
 maze_loader = MazeLoader()
 maze_drawer = MazeDrawer(tile_map = tile_processor.create_tile_map(), tile_size=tile_processor.new_size)
 maze_solver = 0
@@ -76,12 +69,6 @@ while running:
 
         if event.type == pygame_gui.UI_FILE_DIALOG_PATH_PICKED:
             print(f"File path picked: {event.text}")
-            # path = event.text
-            # maze = load_data(path)
-            # size = control_size(maze)
-            # tiles, new_size = reload_tileset("assets/tiles/dungeon_sheet.png", "assets/sprites/swiss.png",TILE_SIZE, scale_factor=size)
-            # tile_map = create_tile_map(tiles) if tiles else {}
-            # fixed_map, obstacle_map = generate_fixed_map(maze, tile_map)
             maze_loader.file_path = event.text
             maze_loader.load_maze()
             maze_solver = MazeSolver(maze_loader, maze_drawer)
