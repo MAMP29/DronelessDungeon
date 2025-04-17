@@ -10,6 +10,8 @@ class MazeDrawer:
         self.tile_map = tile_map
         self.tile_size = tile_size
         self.fixed_map = None
+        self.packages_fixed = None
+        self.obstacles_fixed = None
         self.obstacle_map = None
         self._border_tiles = {
             -1: "top_middle", -2: "top_wall", -3: "top_left", -4: "top_left_corner",
@@ -18,19 +20,29 @@ class MazeDrawer:
         }
         if maze_loader is not None:
             self.generate_fixed_map()
-
-
+            self.load_fixed_packages_and_obstacles()
 
     def generate_fixed_map(self):
         """Crea una copia del mapa con obstáculos fijos (para que no cambien en cada frame)"""
         self.fixed_map = np.copy(self.maze)  # Copia la matriz original
         self.obstacle_map = {}  # Diccionario para almacenar los obstáculos fijos
 
+
         rows, cols = self.maze.shape
         for y in range(rows):
             for x in range(cols):
                 if self.maze[y, x] == 1:  # Si es un obstáculo
                     self.obstacle_map[(y, x)] = random.choice(self.tile_map["obstacle"])
+
+    # def load_fixed_packages_and_obstacles(self):
+    #     maze_packages = np.where(self.maze == 4)
+    #     maze_obstacles = np.where(self.maze == 3)
+    #
+    #     self.packages_fixed = list(zip(map(int, maze_packages[0]), map(int, maze_packages[1])))
+    #     self.obstacles_fixed = list(zip(map(int, maze_obstacles[0]), map(int, maze_obstacles[1])))
+    #
+    #     print(f"PAQUETES {self.packages_fixed}")
+    #     print(f"OBSTACLES {self.obstacles_fixed}")
 
     def draw_maze(self, screen):
         """Dibuja el laberinto en la pantalla usando la matriz fija"""
@@ -59,8 +71,8 @@ class MazeDrawer:
         element = 0
         package_fixed = [(2, 4) , (2, 5), (8, 6)]
         electro_fixed = [(2, 3) , (6, 0), (6, 1)]
-        if (inir, inic) in package_fixed: element = 4
-        if (inir, inic) in electro_fixed: element = 3
+        if (inir, inic) in self.packages_fixed: element = 4
+        if (inir, inic) in self.obstacles_fixed: element = 3
         inir +=2
         inic +=1
         newr +=2

@@ -15,6 +15,7 @@ class MazeSolver:
             self.R, self.C = np.shape(self.matriz)  # Filas y Columnas
             self.sr, self.sc = map(int, np.where(self.matriz == 2))  # Lugar del buscador (dron)
             self.maze_packages = np.where(self.matriz == 4)
+            self.maze_obstacles = np.where(self.matriz == 3)
 
             self.rowCowPaDeque = None  # Como algunas funciones no usan una cola directamente, inicializaremos este componente en el reset()
 
@@ -333,6 +334,12 @@ class MazeSolver:
         print(f"run_solution: {len(self.solution)}")
         previous_r = 2
         previous_c = 1
+
+        packages_fixed = list(zip(map(int, self.maze_packages[0]), map(int, self.maze_packages[1])))
+        obstacles_fixed = list(zip(map(int, self.maze_obstacles[0]), map(int, self.maze_obstacles[1])))
+
+        self.maze_drawer.packages_fixed = packages_fixed
+        self.maze_drawer.obstacles_fixed = obstacles_fixed
 
         screen = pygame.display.get_surface()  # Obtener la superficie de la pantalla
 
