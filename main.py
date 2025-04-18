@@ -12,6 +12,7 @@ TILE_SIZE = 16
 WIDTH, HEIGHT = 1400, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("RatCheese")
+reporte ="Aquí veras el reporte de los resultados"
 
 ui_manager = pygame_gui.UIManager((WIDTH, HEIGHT), "assets/themes.json")
 
@@ -35,6 +36,12 @@ start_button = pygame_gui.elements.UIButton(
     object_id=ObjectID(class_id='@wooden_button', object_id='#start_button'),
 )
 
+text_effect = pygame_gui.elements.UITextBox(
+    html_text=reporte,
+    relative_rect=pygame.Rect((WIDTH - 500 - 50, 500), (500, 100)),
+    manager=ui_manager,
+    object_id=ObjectID(class_id='@text_personalized', object_id='#text_custom')
+)
 
 tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites/electric_field1.png",
                                TILE_SIZE, scale_factor=4, danger_file2="assets/sprites/electric_field2.png",
@@ -53,7 +60,7 @@ while running:
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 if maze_solver:
-                    maze_solver.gbfs()
+                    maze_solver.bfs()
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
 
                     #time.sleep(2)

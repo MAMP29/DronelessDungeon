@@ -1,5 +1,8 @@
 import heapq
+import time
 from collections import deque
+from time import sleep
+
 import numpy as np
 import pygame
 from logic.solutions_builders import get_solution_from_list, get_solution_from_dict
@@ -66,6 +69,10 @@ class MazeSolver:
 
         # visited = set()
         # cada nodo tiene (row, column, packages, cost, type moven , parent)
+
+        start_time = time.time()
+        end_time = 0
+
         self.rowCowPaDeque.append((self.sr, self.sc, frozenset(), 0, -1, None))
         visited = [[self.sr, self.sc, frozenset(), 0, -1, None]]
 
@@ -104,6 +111,7 @@ class MazeSolver:
                     self.reached_end = True
                     # print(f"S quedó en: ({r}, {c})")
                     print(f"SOLUCION: Nodo=({r},{c}) - paquetes={len(new_packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
+                    end_time = time.time()
                     break
                 # print(f"En paquete 2 {type(self.matriz)}")
 
@@ -124,7 +132,7 @@ class MazeSolver:
             print(f"Nodos expandidos: {self.expanded_nodes}")
             self.solution = get_solution_from_list(r, c, visited, 'bfs')
             self.run_solution()
-            return self.move_count
+            return self.expanded_nodes, self.move_count, end_time - start_time
 
         print("No se encontró la solución")
         print(f"Movimientos {self.move_count}")
