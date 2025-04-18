@@ -297,6 +297,64 @@ class MazeSolver:
 
         print("No se encontró la solución")
         return None
+    
+
+    def a_star(self):
+        print("USANDO A*")
+        print(f"Numero de objetivos {self.number_of_objetives}")
+        package_coords = list(zip(map(int, self.maze_packages[0]), map(int, self.maze_packages[1])))
+        self.reset("ucs")  # usa el mismo setup
+
+        counter = 0
+        start_state = (self.sr, self.sc, frozenset())
+        h = self.manhattan_heuristic(self.sr, self.sc, package_coords)
+        heapq.heappush(self.rowCowPaDeque, (h, 0, 0, self.sr, self.sc, frozenset(), -1, None))  # (f, g, h, r, c, paquetes, mov, padre)
+        visited = {start_state: (None, 0, -1)}  # state: (parent, g, move_type)
+
+        final_node = None
+        final_cost = None
+        final_packages = None
+
+        while self.rowCowPaDeque:
+            f, g, h_val, r, c, packages, typemoven, parent = heapq.heappop(self.rowCowPaDeque)
+            self.expanded_nodes += 1
+            current_state = (r, c, packages)
+
+            if self.matriz[r, c] == 4 and (r, c) not in packages:
+                new_packages = frozenset(list(packages) + [(r, c)])
+                if len(new_packages) == self.number_of_objetives:
+                    self.reached_end = True
+                    final_node = (r, c)
+                    final_cost = g
+                    final_packages = new_packages
+                    break
+                packages = new_packages  # actualiza para seguir buscando más
+
+            for i in range(4):
+                rr = r + self.moves_row[i]
+                cc = c + self.moves_column[i]
+                if 0 <= rr < self.R and 0 <= cc < self.C and self.matriz[rr, cc] != 1:
+                    new_state = (rr, cc, packages)
+                    move_cost = 9 if self.matriz[rr, cc] == 3 else 1
+                    new_g = g + move_cost
+                    new_h = self.manhattan_heuristic(rr, cc, [p for p in package_coords if p not in packages])
+                    new_f = new_g + new_h
+
+                    if new_state not in visited or new_g < visited[new_state][1]:
+                        counter += 1
+                        heapq.heappush(self.rowCowPaDeque, (new_f, new_g, new_h, rr, cc, packages, i, (r, c)))
+                        visited[new_state] = ((r, c), new_g, i)
+
+        if self.reached_end:
+            print(f"Terminado, costo total: {final_cost}")
+            print(f"Nodos expandidos: {self.expanded_nodes}")
+            self.solution = get_solution_from_dict(self.matriz, final_node, final_packages, visited)
+            self.run_solution()
+            return final_cost
+
+        print("No se encontró la solución")
+        return None
+
 
     def explore_neighbours_gbfs(self, r, c, packages, visited, counter, package_coords):
         for i in range(4):
