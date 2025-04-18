@@ -12,7 +12,7 @@ TILE_SIZE = 16
 WIDTH, HEIGHT = 1400, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("RatCheese")
-reporte ="Aquí veras el reporte de los resultados"
+report = "Aquí veras el reporte de los resultados"
 
 ui_manager = pygame_gui.UIManager((WIDTH, HEIGHT), "assets/themes.json")
 
@@ -37,8 +37,8 @@ start_button = pygame_gui.elements.UIButton(
 )
 
 text_effect = pygame_gui.elements.UITextBox(
-    html_text=reporte,
-    relative_rect=pygame.Rect((WIDTH - 500 - 50, 500), (500, 100)),
+    html_text=report,
+    relative_rect=pygame.Rect((WIDTH - 500 - 50, 500), (500, 120)),
     manager=ui_manager,
     object_id=ObjectID(class_id='@text_personalized', object_id='#text_custom')
 )
@@ -60,7 +60,9 @@ while running:
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 if maze_solver:
-                    maze_solver.bfs()
+                    # report = maze_solver.execute_algorithm('BFS')
+                    maze_solver.ucs()
+                    text_effect.set_text(report)
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
 
                     #time.sleep(2)

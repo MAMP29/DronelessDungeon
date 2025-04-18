@@ -43,6 +43,33 @@ class MazeSolver:
             self.type_box = ["Libre", "Obstáculo", "Inicio", "Campo electromagnético", "Paquete"]
             self.solution = []
 
+    def execute_algorithm(self, algorithm_name):
+        algorithms = {
+            "BFS": self.bfs,
+            "UCS": self.ucs,
+            "GBFS": self.gbfs,
+            "A*": self.a_star,
+        }
+
+        if algorithm_name not in algorithms:
+            return "Algoritmo no reconocido"
+
+        print(f"Ejecutando {algorithm_name}...")
+        report = algorithms[algorithm_name]()
+        print("Construyendo reporte...")
+
+        if report:
+            return (
+                f"Ejecución por {algorithm_name} \n"
+                f"Nodos expandidos: {report['nodos_expandidos']} \n "
+                f"Profundidad: {report['profundidad']} \n "
+                f"Tiempo: {report['tiempo']} \n "
+                f"Coste: {report['costo'] if report['costo'] else 'No aplica'}"
+            )
+        else:
+            return "No se encontró una solución"
+
+
     def reset(self, algorithm_type):
         """Resetea los valores para poder ejecutar el algoritmo nuevamente. Con base en la estructura de datos que se necesita para almacenar los nodos,
         reset la carga, por lo que es indispensable que esté en el inicio de la función"""
@@ -132,7 +159,12 @@ class MazeSolver:
             print(f"Nodos expandidos: {self.expanded_nodes}")
             self.solution = get_solution_from_list(r, c, visited, 'bfs')
             self.run_solution()
-            return self.expanded_nodes, self.move_count, end_time - start_time
+            return {
+                "nodos_expandidos": self.expanded_nodes,
+                "profundidad": self.move_count,
+                "tiempo": end_time - start_time,
+                "costo": None
+            }
 
         print("No se encontró la solución")
         print(f"Movimientos {self.move_count}")
@@ -172,6 +204,9 @@ class MazeSolver:
         print(f"Número de objetivos alcanzados antes {self.number_of_objetives_reached}")
         print(f"columnas {self.C} y filas {self.R}")
         self.reset("ucs")
+
+        start_time = time.time()
+        end_time = time.time()
         counter = 0
         # El costo va de primero como prioridad, luego le sigue un contador en caso de empate
         heapq.heappush(self.rowCowPaDeque, (0, counter, self.sr, self.sc, frozenset(), -1, None))
@@ -202,6 +237,7 @@ class MazeSolver:
                     final_node = (r, c)
                     final_cost = cost
                     final_packages = new_packages
+                    end_time = time.time()
                     break
 
                 new_state = (r, c, new_packages)
@@ -212,9 +248,15 @@ class MazeSolver:
 
             print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
             self.explore_neighbours_ucs(r, c, packages, cost, visited, counter)
+            self.nodes_left_in_layer -= 1
+            if self.nodes_left_in_layer == 0:
+                self.nodes_left_in_layer = self.nodes_next_in_layer
+                self.nodes_next_in_layer = 0  # Reseteamos los nodos siguientes
+                self.move_count += 1
 
         if self.reached_end:
             print(f"Terminado, costo: {final_cost}")
+            print(f"Terminado, profundidad: {self.move_count}")
             print(f"Nodos expandidos: {self.expanded_nodes}")
             self.solution = get_solution_from_dict(self.matriz, final_node, final_packages, visited)
             self.run_solution()
@@ -245,6 +287,7 @@ class MazeSolver:
                 print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
                 heapq.heappush(self.rowCowPaDeque, (new_cost, counter, rr, cc, packages, i, (int(r), int(c))))
                 visited[new_state] = ((int(r), int(c)), new_cost, i)
+                self.nodes_next_in_layer += 1
 
     def gbfs(self):
         print("USANDO GBFS")
@@ -305,7 +348,7 @@ class MazeSolver:
 
         print("No se encontró la solución")
         return None
-    
+
 
     def a_star(self):
         print("USANDO A*")
