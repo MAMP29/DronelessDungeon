@@ -2,7 +2,6 @@ import random
 import numpy as np
 
 class MazeDrawer:
-
     """ Se encarga de dibujar el laberinto en la pantalla con base a los tiles proporcionados."""
 
     def __init__(self, maze_loader=None, tile_map=None, tile_size=None):
@@ -20,7 +19,6 @@ class MazeDrawer:
         }
         if maze_loader is not None:
             self.generate_fixed_map()
-            self.load_fixed_packages_and_obstacles()
 
     def generate_fixed_map(self):
         """Crea una copia del mapa con obstáculos fijos (para que no cambien en cada frame)"""
@@ -34,15 +32,6 @@ class MazeDrawer:
                 if self.maze[y, x] == 1:  # Si es un obstáculo
                     self.obstacle_map[(y, x)] = random.choice(self.tile_map["obstacle"])
 
-    # def load_fixed_packages_and_obstacles(self):
-    #     maze_packages = np.where(self.maze == 4)
-    #     maze_obstacles = np.where(self.maze == 3)
-    #
-    #     self.packages_fixed = list(zip(map(int, maze_packages[0]), map(int, maze_packages[1])))
-    #     self.obstacles_fixed = list(zip(map(int, maze_obstacles[0]), map(int, maze_obstacles[1])))
-    #
-    #     print(f"PAQUETES {self.packages_fixed}")
-    #     print(f"OBSTACLES {self.obstacles_fixed}")
 
     def draw_maze(self, screen):
         """Dibuja el laberinto en la pantalla usando la matriz fija"""
@@ -69,8 +58,7 @@ class MazeDrawer:
         
     def move_charanter(self, inir ,inic, newr, newc):
         element = 0
-        package_fixed = [(2, 4) , (2, 5), (8, 6)]
-        electro_fixed = [(2, 3) , (6, 0), (6, 1)]
+
         if (inir, inic) in self.packages_fixed: element = 4
         if (inir, inic) in self.obstacles_fixed: element = 3
         inir +=2

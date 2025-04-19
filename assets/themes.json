@@ -20,5 +20,26 @@
     }
   },
   "#presentation_panel": {
+  },
+
+  "@text_personalized": {
+    "colours": {
+      "dark_bg": "#21282D",
+      "normal_border": "#999999",
+      "link_text": "#FF0000",
+      "link_hover": "#FFFF00",
+      "link_selected": "#FFFFFF"
+    },
+    "misc": {
+      "border_width": "1",
+      "padding": "10,10",
+      "link_normal_underline": "0",
+      "link_hover_underline": "1",
+      "line_spacing": "1.0",
+      "text_horiz_alignment": "center"
+    }
+  },
+  "#text_custom": {
+
   }
 }
