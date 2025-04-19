@@ -248,19 +248,20 @@ class MazeSolver:
 
             print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
             self.explore_neighbours_ucs(r, c, packages, cost, visited, counter)
-            self.nodes_left_in_layer -= 1
-            if self.nodes_left_in_layer == 0:
-                self.nodes_left_in_layer = self.nodes_next_in_layer
-                self.nodes_next_in_layer = 0  # Reseteamos los nodos siguientes
-                self.move_count += 1
 
         if self.reached_end:
             print(f"Terminado, costo: {final_cost}")
             print(f"Terminado, profundidad: {self.move_count}")
             print(f"Nodos expandidos: {self.expanded_nodes}")
             self.solution = get_solution_from_dict(self.matriz, final_node, final_packages, visited)
+            final_depth = len(self.solution) - 1  # La profundidad es el número de pasos (nodos - 1)
             self.run_solution()
-            return final_cost
+            return {
+                "nodos_expandidos": self.expanded_nodes,
+                "profundidad": final_depth,
+                "tiempo": end_time - start_time,
+                "costo": final_cost
+            }
 
         print("No se encontró la solución")
         return None
@@ -287,7 +288,6 @@ class MazeSolver:
                 print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
                 heapq.heappush(self.rowCowPaDeque, (new_cost, counter, rr, cc, packages, i, (int(r), int(c))))
                 visited[new_state] = ((int(r), int(c)), new_cost, i)
-                self.nodes_next_in_layer += 1
 
     def gbfs(self):
         print("USANDO GBFS")
@@ -299,6 +299,8 @@ class MazeSolver:
         print(f"COORDENADOS {package_coords}")
         self.reset("ucs") # Sirve también
 
+        start_time = time.time()
+        end_time = 0
         counter = 0
 
         heapq.heappush(self.rowCowPaDeque, (0, counter, self.sr, self.sc, frozenset(), -1, None))
@@ -327,6 +329,7 @@ class MazeSolver:
                     final_node = (r, c)
                     final_heuristic_value = heuristic_value
                     final_packages = new_packages
+                    end_time = time.time()
                     break
 
                 new_state = (r, c, new_packages)
@@ -335,16 +338,21 @@ class MazeSolver:
                     heapq.heappush(self.rowCowPaDeque, (heuristic_value, counter, r, c, new_packages, typemoven, (int(r), int(c))))
                     visited[new_state] = ((int(r), int(c)), heuristic_value, typemoven)
 
-            print(
-                f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={heuristic_value} - movimiento={self.type_moven[typemoven]} - padre={parent}")
+            print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={heuristic_value} - movimiento={self.type_moven[typemoven]} - padre={parent}")
             self.explore_neighbours_gbfs(r, c, packages, visited, counter, package_coords)
 
         if self.reached_end:
             print(f"Terminado, costo: {final_heuristic_value}")
             print(f"Nodos expandidos: {self.expanded_nodes}")
             self.solution = get_solution_from_dict(self.matriz, final_node, final_packages, visited)
+            final_depth = len(self.solution) - 1
             self.run_solution()
-            return final_heuristic_value
+            return {
+                "nodos_expandidos": self.expanded_nodes,
+                "profundidad": self.move_count,
+                "tiempo": end_time - start_time,
+                "costo": final_depth
+            }
 
         print("No se encontró la solución")
         return None
@@ -356,6 +364,8 @@ class MazeSolver:
         package_coords = list(zip(map(int, self.maze_packages[0]), map(int, self.maze_packages[1])))
         self.reset("ucs")  # usa el mismo setup
 
+        start_time = time.time()
+        end_time = 0
         counter = 0
         start_state = (self.sr, self.sc, frozenset())
         h = self.manhattan_heuristic(self.sr, self.sc, package_coords)
@@ -378,6 +388,7 @@ class MazeSolver:
                     final_node = (r, c)
                     final_cost = g
                     final_packages = new_packages
+                    end_time = time.time()
                     break
                 packages = new_packages  # actualiza para seguir buscando más
 
@@ -400,8 +411,14 @@ class MazeSolver:
             print(f"Terminado, costo total: {final_cost}")
             print(f"Nodos expandidos: {self.expanded_nodes}")
             self.solution = get_solution_from_dict(self.matriz, final_node, final_packages, visited)
+            final_depth = len(self.solution) - 1
             self.run_solution()
-            return final_cost
+            return {
+                "nodos_expandidos": self.expanded_nodes,
+                "profundidad": final_depth,
+                "tiempo": end_time - start_time,
+                "costo": final_cost
+            }
 
         print("No se encontró la solución")
         return None
