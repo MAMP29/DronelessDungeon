@@ -55,16 +55,38 @@ class MazeDrawer:
             screen.blit(self.tile_map["objetive"], (x * self.tile_size, y * self.tile_size))
         elif cell in self._border_tiles:
             screen.blit(self.tile_map[self._border_tiles[cell]], (x * self.tile_size, y * self.tile_size))
-        
-    def move_charanter(self, inir ,inic, newr, newc):
+
+    def move_charanter(self, inir, inic, newr, newc):
         element = 0
 
-        if (inir, inic) in self.packages_fixed: element = 4
-        if (inir, inic) in self.obstacles_fixed: element = 3
-        inir +=2
-        inic +=1
-        newr +=2
-        newc +=1
+        # Si estamos en un paquete, lo "recogemos" (no lo restauramos)
+        if (inir, inic) in self.packages_fixed:
+            # Eliminar este paquete de la lista de paquetes
+            self.packages_fixed.remove((inir, inic))
+            element = 0  # El tile queda vacío
+        elif (inir, inic) in self.obstacles_fixed:
+            element = 3
+
+        inir += 2
+        inic += 1
+        newr += 2
+        newc += 1
+
         self.fixed_map[inir, inic] = element
         self.fixed_map[newr, newc] = 2
 
+
+    def reset_maze(self, sx, sy):
+        """Reinicia el laberinto a su estado inicial"""
+
+        # Reinicia la posición del personaje a la posición inicial (2,1)
+        rows, cols = self.fixed_map.shape
+        for y in range(rows):
+            for x in range(cols):
+                if self.fixed_map[y, x] == 2:  # Si es el personaje
+                    self.fixed_map[y, x] = 0  # Lo quita de su posición actual
+
+        # Colocar el personaje en su posición inicial
+        self.fixed_map[sx, sy] = 2
+
+        self.generate_fixed_map()  # Regenera el mapa fijo
