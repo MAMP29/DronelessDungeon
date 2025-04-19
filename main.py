@@ -29,18 +29,28 @@ load_button = pygame_gui.elements.UIButton(
     object_id=ObjectID(class_id='@wooden_button', object_id='#load_button'),
 )
 
+report_text = pygame_gui.elements.UITextBox(
+    html_text=report,
+    relative_rect=pygame.Rect((WIDTH - 500 - 50, 500), (500, 120)),
+    manager=ui_manager,
+    object_id=ObjectID(class_id='@text_personalized', object_id='#text_custom')
+)
+
+algorithms_to_use = ['BFS', 'UCS', 'GBFS', 'A*']
+
+drop_down_menu = pygame_gui.elements.UIDropDownMenu(
+    options_list=algorithms_to_use,
+    starting_option='BFS',
+    relative_rect=pygame.Rect((WIDTH - 500 - 50, 440), (500, 50)),
+    manager=ui_manager,
+    object_id=ObjectID(class_id='@drop_down_custom', object_id='#drop_down_custom_object')
+)
+
 start_button = pygame_gui.elements.UIButton(
     relative_rect=pygame.Rect((WIDTH - 500 - 50, HEIGHT - 100), (500, 50)),  # Pegado abajo
     text="Start",
     manager=ui_manager,
     object_id=ObjectID(class_id='@wooden_button', object_id='#start_button'),
-)
-
-text_effect = pygame_gui.elements.UITextBox(
-    html_text=report,
-    relative_rect=pygame.Rect((WIDTH - 500 - 50, 500), (500, 120)),
-    manager=ui_manager,
-    object_id=ObjectID(class_id='@text_personalized', object_id='#text_custom')
 )
 
 tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites/electric_field1.png",
@@ -60,9 +70,9 @@ while running:
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 if maze_solver:
-                    report = maze_solver.execute_algorithm('GBFS')
+                    report = maze_solver.execute_algorithm(drop_down_menu.selected_option[0])
 
-                    text_effect.set_text(report)
+                    report_text.set_text(report)
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
 
             if event.ui_element == load_button:
@@ -74,7 +84,7 @@ while running:
 
         if event.type == pygame_gui.UI_FILE_DIALOG_PATH_PICKED:
             print(f"File path picked: {event.text}")
-            text_effect.set_text("Aquí veras el reporte de los resultados")
+            report_text.set_text("Aquí veras el reporte de los resultados")
             maze_loader.file_path = event.text
             maze_loader.load_maze()
             maze_solver = MazeSolver(maze_loader, maze_drawer)
