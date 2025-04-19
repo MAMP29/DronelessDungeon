@@ -56,6 +56,8 @@ class MazeSolver:
         report = algorithms[algorithm_name]()
         print("Construyendo reporte...")
 
+        self.maze_drawer.reset_maze(self.sr, self.sc)
+
         if report:
             return (
                 f"Ejecución por {algorithm_name} \n"

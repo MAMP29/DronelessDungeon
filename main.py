@@ -9,7 +9,7 @@ from logic.MazeDrawer import MazeDrawer
 pygame.init()
 
 TILE_SIZE = 16
-WIDTH, HEIGHT = 1400, 800
+WIDTH, HEIGHT = 1450, 850
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("RatCheese")
 report = "Aquí veras el reporte de los resultados"
@@ -60,7 +60,7 @@ while running:
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 if maze_solver:
-                    report = maze_solver.execute_algorithm('A*')
+                    report = maze_solver.execute_algorithm('GBFS')
 
                     text_effect.set_text(report)
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
@@ -74,6 +74,7 @@ while running:
 
         if event.type == pygame_gui.UI_FILE_DIALOG_PATH_PICKED:
             print(f"File path picked: {event.text}")
+            text_effect.set_text("Aquí veras el reporte de los resultados")
             maze_loader.file_path = event.text
             maze_loader.load_maze()
             maze_solver = MazeSolver(maze_loader, maze_drawer)
