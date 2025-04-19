@@ -60,13 +60,10 @@ while running:
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 if maze_solver:
-                    report = maze_solver.execute_algorithm('GBFS')
+                    report = maze_solver.execute_algorithm('A*')
 
                     text_effect.set_text(report)
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
-
-                    #time.sleep(2)
-                    #maze_drawer.move_charanter(2, 1, 2, 2)
 
             if event.ui_element == load_button:
                 file_dialog = pygame_gui.windows.UIFileDialog(
@@ -91,10 +88,8 @@ while running:
     screen.fill((47, 40, 58))
 
     if  maze_drawer.maze is not None:
-        #draw_maze(screen, fixed_map, obstacle_map, tile_map, new_size)
         maze_drawer.draw_maze(screen)
 
-    # pygame.draw.rect(screen, (161, 128, 114), presentation_rect)
     ui_manager.draw_ui(screen)
     pygame.display.flip()
 

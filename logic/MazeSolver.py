@@ -33,8 +33,6 @@ class MazeSolver:
             self.number_of_objetives_reached = 0
             self.reached_end = False
 
-            # Matriz booleana para las posiciones, basada en la matriz original pero con puros ceros
-            # self.visited = np.zeros_like(self.matriz, dtype=bool)        self.rowCowPaDeque: Deque[int] = deque()  # Especifica el tipo (int, str, etc.)
 
             # Movimiento, [0] arriba, [1] abajo, [2] derecha y [3] izquierda
             self.moves_row = np.array([-1, 1, 0, 0])
@@ -103,36 +101,25 @@ class MazeSolver:
         self.rowCowPaDeque.append((self.sr, self.sc, frozenset(), 0, -1, None))
         visited = [[self.sr, self.sc, frozenset(), 0, -1, None]]
 
-        # visited[self.sr, self.sc] = True
 
-        # print(f"Entrando a bfs {type(self.matriz)}")
         while len(self.rowCowPaDeque) > 0:  # Puede ser len(self.cq) > 0 pues se mueven igual
             # Extraemos las posiciones
             r, c, packages, cost, typemoven, parent = self.rowCowPaDeque.popleft()
             self.expanded_nodes += 1  # Se expandió un nodo
 
-            # print("En ciclo" + type(self.matriz))
 
             if self.matriz[r, c] == 4 and (r, c) not in packages:
-                # print(f"En paquete {type(self.matriz)}")
-
-                # self.number_of_objetives_reached+=1
 
                 new_packages = frozenset(list(packages) + [(r, c)])
 
                 print(f"Número de objetivos alcanzados {len(packages)}")
                 print(f"Paquete encontrado en: ({r}, {c})")
 
-                # self.visited = TODO: HACER QUE LA POSICIÓN PASADA SEA UNA OPCIÓN PARA DEVOLVERSE
                 new_state = (r, c, new_packages, cost, typemoven, parent)
-                # if new_state not in visited:
                 self.rowCowPaDeque.append(new_state)
-                # visited.add(new_state)
                 visited.insert(0, new_state)
                 self.nodes_next_in_layer += 1
 
-                # self.matriz[r, c] = 0
-                # print(self.matriz)
 
                 if len(new_packages) == self.number_of_objetives:
                     self.reached_end = True
@@ -146,6 +133,7 @@ class MazeSolver:
             self.explore_neighbours(r, c, packages, cost, visited)
             self.nodes_left_in_layer -= 1  # Quita un nodo restante
             print(f"nodos  {self.nodes_left_in_layer}")
+
             # Controla el avance al siguiente nivel, solo carga los que siguen al actual y suma profundidad
             if self.nodes_left_in_layer == 0:
                 self.nodes_left_in_layer = self.nodes_next_in_layer
@@ -171,7 +159,6 @@ class MazeSolver:
         return None
 
     def explore_neighbours(self, r, c, packages, cost, visited):
-        # print(f"Explorando vecinos {type(self.matriz)}")
 
         for i in range(4):
             # Posición actual
@@ -183,18 +170,14 @@ class MazeSolver:
 
             new_state = (rr, cc, packages)
 
-            # print(f"Ciclo explorando vecinos {type(self.matriz)}")
-            # if new_state in visited: continue
+
             if any(nodo[:3] == new_state for nodo in visited): continue
             if self.matriz[rr, cc] == 1: continue
 
-            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": cost += 8  # Ahora tiene en cuenta el costo del campo electromagnético
-            # print(f"MIRA MI CAMPO {self.type_box[self.matriz[rr, cc]] == "Campo electromagnético"}")
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": cost += 8  # Tiene en cuenta el costo del campo electromagnético
 
-            # print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: "+self.type_box[self.matriz[rr, cc]])
             new_state = new_state + (cost + 1, i, (int(r), int(c)))
             self.rowCowPaDeque.append(new_state)
-            # visited.add(new_state)
             visited.insert(0, new_state)
             self.nodes_next_in_layer += 1
 
@@ -211,7 +194,7 @@ class MazeSolver:
         # El costo va de primero como prioridad, luego le sigue un contador en caso de empate
         heapq.heappush(self.rowCowPaDeque, (0, counter, self.sr, self.sc, frozenset(), -1, None))
 
-        # Cambio: en lugar de usar una lista simple, usamos un diccionario para almacenar
+        # En lugar de usar una lista simple, usamos un diccionario para almacenar
         # los estados visitados con sus padres y otra información relevante
         visited = {(self.sr, self.sc, frozenset()): (None, 0, -1)}
 
@@ -268,7 +251,6 @@ class MazeSolver:
 
     def explore_neighbours_ucs(self, r, c, packages, cost, visited, counter):
         for i in range(4):
-            # Posición actual
             rr = r + self.moves_row[i]
             cc = c + self.moves_column[i]
 
@@ -282,7 +264,6 @@ class MazeSolver:
             if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
             new_cost = additional_cost + cost
 
-            # Solo expandimos si no hemos visitado este estado o si tenemos un camino mejor
             if new_state not in visited or new_cost < visited[new_state][1]:
                 counter += 1
                 print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
@@ -315,7 +296,6 @@ class MazeSolver:
             heuristic_value, _, r, c, packages, typemoven, parent = heapq.heappop(self.rowCowPaDeque)
             self.expanded_nodes += 1
 
-            # Verificamos si ya encontramos una solución con menor costo
             current_state = (r, c, packages)
 
             if self.matriz[r, c] == 4 and (r, c) not in packages:
@@ -426,7 +406,6 @@ class MazeSolver:
 
     def explore_neighbours_gbfs(self, r, c, packages, visited, counter, package_coords):
         for i in range(4):
-            # Posición actual
             rr = r + self.moves_row[i]
             cc = c + self.moves_column[i]
 
@@ -438,7 +417,6 @@ class MazeSolver:
 
             heuristic_value = self.manhattan_heuristic(rr, cc, package_coords)
 
-            # Solo expandimos si no hemos visitado este estado o si tenemos un camino mejor
             if new_state not in visited or heuristic_value < visited[new_state][1]:
                 counter += 1
                 print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
@@ -452,8 +430,6 @@ class MazeSolver:
         las dos posiciones actuales
         """
         return min(abs(r - i[0]) + abs(c - i[1]) for i in package_coords)
-
-
 
 
     def run_solution(self):
