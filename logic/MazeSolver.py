@@ -331,7 +331,7 @@ class MazeSolver:
             self.run_solution()
             return {
                 "nodos_expandidos": self.expanded_nodes,
-                "profundidad": self.move_count,
+                "profundidad": final_depth,
                 "tiempo": end_time - start_time,
                 "costo": final_depth
             }
