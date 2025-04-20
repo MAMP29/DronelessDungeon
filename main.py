@@ -60,7 +60,7 @@ while running:
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 if maze_solver:
-                    report = maze_solver.execute_algorithm('GBFS')
+                    report = maze_solver.execute_algorithm('DFS')
 
                     text_effect.set_text(report)
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
