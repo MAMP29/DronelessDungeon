@@ -82,6 +82,8 @@ while running:
                     report_text.set_text(report)
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
 
+                else: report_text.set_text("Carga un mapa para resolver")
+
             if event.ui_element == load_button:
                 file_dialog = pygame_gui.windows.UIFileDialog(
                     rect=pygame.Rect((400, 200), (600, 400)),  # Tamaño y posición
