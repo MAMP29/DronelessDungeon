@@ -1,7 +1,7 @@
 {
   "@wooden_button": {
     "colours": {
-      "normal_bg": "#a18072",
+      "normal_bg": "#787B66",
       "hovered_bg": "#846358",
       "disabled_bg": "#493831",
       "selected_bg": "#ebe3e0",
@@ -21,7 +21,6 @@
   },
   "#presentation_panel": {
   },
-
   "@text_personalized": {
     "colours": {
       "dark_bg": "#21282D",
@@ -40,6 +39,24 @@
     }
   },
   "#text_custom": {
+  },
+
+  "@drop_down_custom": {
+    "misc": {
+      "expand_direction": "down"
+    },
+    "colours": {
+      "normal_bg": "#a18072",
+      "hovered_bg": "#846358"
+    }
+  },
+  "drop_down_menu.#selected_option": {
+    "misc": {
+      "border_width": "1",
+      "open_button_width": "10"
+    }
+  },
+  "#drop_down_custom_object": {
 
   }
 }

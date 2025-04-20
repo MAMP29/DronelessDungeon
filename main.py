@@ -1,3 +1,6 @@
+import os
+import random
+
 import pygame
 import pygame_gui
 from pygame_gui.core import ObjectID
@@ -5,6 +8,7 @@ from logic.MazeLoader import MazeLoader
 from logic.MazeSolver import MazeSolver
 from logic.TileProcessor import TileProcessor
 from logic.MazeDrawer import MazeDrawer
+from music_controller import play_random_song, toggle_mute, skip_song
 
 pygame.init()
 
@@ -16,10 +20,20 @@ report = "Aquí veras el reporte de los resultados"
 
 ui_manager = pygame_gui.UIManager((WIDTH, HEIGHT), "assets/themes.json")
 
-presentation_rect = pygame_gui.elements.UIPanel(
-    relative_rect=pygame.Rect((WIDTH - 500 - 50, 50), (500, 300)),  # (X, Y, Ancho, Alto)
-    manager=ui_manager,
-    object_id=ObjectID(class_id='@wooden_panel', object_id='#presentation_panel'),
+pygame.mixer.init()
+
+
+# Imagen
+imagen = pygame.image.load('assets/droneless_dungeon.jpeg')
+# Convertir la imagen en una superficie compatible con pygame_gui
+superficie_imagen = pygame.Surface((500, 300), pygame.SRCALPHA)
+superficie_imagen.blit(pygame.transform.scale(imagen, (500, 300)), (0, 0))
+
+
+imagen_ui = pygame_gui.elements.UIImage(
+    relative_rect=pygame.Rect((WIDTH - 500 - 50, 50), (500, 300)),
+    image_surface=superficie_imagen,
+    manager=ui_manager
 )
 
 load_button = pygame_gui.elements.UIButton(
@@ -29,6 +43,23 @@ load_button = pygame_gui.elements.UIButton(
     object_id=ObjectID(class_id='@wooden_button', object_id='#load_button'),
 )
 
+report_text = pygame_gui.elements.UITextBox(
+    html_text=report,
+    relative_rect=pygame.Rect((WIDTH - 500 - 50, 500), (500, 120)),
+    manager=ui_manager,
+    object_id=ObjectID(class_id='@text_personalized', object_id='#text_custom')
+)
+
+algorithms_to_use = ['BFS', 'DFS', 'UCS', 'GBFS', 'A*']
+
+drop_down_menu = pygame_gui.elements.UIDropDownMenu(
+    options_list=algorithms_to_use,
+    starting_option='BFS',
+    relative_rect=pygame.Rect((WIDTH - 500 - 50, 440), (500, 50)),
+    manager=ui_manager,
+    object_id=ObjectID(class_id='@drop_down_custom', object_id='#drop_down_custom_object')
+)
+
 start_button = pygame_gui.elements.UIButton(
     relative_rect=pygame.Rect((WIDTH - 500 - 50, HEIGHT - 100), (500, 50)),  # Pegado abajo
     text="Start",
@@ -36,11 +67,18 @@ start_button = pygame_gui.elements.UIButton(
     object_id=ObjectID(class_id='@wooden_button', object_id='#start_button'),
 )
 
-text_effect = pygame_gui.elements.UITextBox(
-    html_text=report,
-    relative_rect=pygame.Rect((WIDTH - 500 - 50, 500), (500, 120)),
-    manager=ui_manager,
-    object_id=ObjectID(class_id='@text_personalized', object_id='#text_custom')
+# Crear un botón para silenciar/activar la música
+mute_button = pygame_gui.elements.UIButton(
+    relative_rect=pygame.Rect((WIDTH - 100, 10), (80, 30)),
+    text='Silenciar',
+    manager=ui_manager
+)
+
+# Crear un botón para saltar a la siguiente canción
+next_song_button = pygame_gui.elements.UIButton(
+    relative_rect=pygame.Rect((WIDTH - 190, 10), (80, 30)),
+    text='Siguiente',
+    manager=ui_manager
 )
 
 tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites/electric_field1.png",
@@ -52,18 +90,35 @@ maze_solver = 0
 
 clock = pygame.time.Clock()
 running = True
+play_random_song()
+
 while running:
     time_delta = clock.tick(60) / 1000.0
+
+    # Verificar si la música ha terminado para reproducir la siguiente
+    if not pygame.mixer.music.get_busy():
+        play_random_song()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 if maze_solver:
-                    report = maze_solver.execute_algorithm('DFS')
+                    report = maze_solver.execute_algorithm(drop_down_menu.selected_option[0])
 
-                    text_effect.set_text(report)
+                    report_text.set_text(report)
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
+
+                else: report_text.set_text("Carga un mapa para resolver")
+
+            if event.ui_element == mute_button:
+                is_muted = toggle_mute()
+                # Actualizar el texto del botón según el estado
+                mute_button.set_text('Activar' if is_muted else 'Silenciar')
+
+            if event.ui_element == next_song_button:
+                skip_song()
 
             if event.ui_element == load_button:
                 file_dialog = pygame_gui.windows.UIFileDialog(
@@ -74,14 +129,21 @@ while running:
 
         if event.type == pygame_gui.UI_FILE_DIALOG_PATH_PICKED:
             print(f"File path picked: {event.text}")
-            text_effect.set_text("Aquí veras el reporte de los resultados")
+            report_text.set_text("Aquí veras el reporte de los resultados")
             maze_loader.file_path = event.text
-            maze_loader.load_maze()
-            maze_solver = MazeSolver(maze_loader, maze_drawer)
-            tile_processor.reload_tileset()
-            maze_drawer.maze = maze_loader.render_maze
-            maze_drawer.generate_fixed_map()
-            file_dialog = None
+            control_load = maze_loader.load_maze()
+            if control_load:
+                print(control_load)
+                report_text.set_text(control_load) # Si hay algo en control_load es porque falló en cargar el laberinto
+
+            else:
+                # Si no entones fue exitoso
+                report_text.set_text("Laberinto cargado ¡Selecciona el laberinto e inicia!")
+                maze_solver = MazeSolver(maze_loader, maze_drawer)
+                tile_processor.reload_tileset()
+                maze_drawer.maze = maze_loader.render_maze
+                maze_drawer.generate_fixed_map()
+                file_dialog = None
 
         ui_manager.process_events(event)
 
@@ -94,5 +156,6 @@ while running:
     ui_manager.draw_ui(screen)
     pygame.display.flip()
 
+pygame.mixer.music.stop()
 pygame.quit()
 
