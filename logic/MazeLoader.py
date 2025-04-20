@@ -30,8 +30,11 @@ class MazeLoader:
             return "Error: El laberinto debe ser más grande que 1x1"
 
         # Verificar que haya al menos un agente (2)
-        if 2 not in self.maze:
+        count = np.count_nonzero(self.maze == 2)
+        if count == 0:
             return "Error: No se encontró la posición inicial del agente (número 2)"
+        elif count > 1:
+            return "Error: Se encontró más de una posición inicial del agente (número 2)"
 
         # Verificar que haya al menos un paquete (4)
         if 4 not in self.maze:
