@@ -16,10 +16,17 @@ report = "Aquí veras el reporte de los resultados"
 
 ui_manager = pygame_gui.UIManager((WIDTH, HEIGHT), "assets/themes.json")
 
-presentation_rect = pygame_gui.elements.UIPanel(
-    relative_rect=pygame.Rect((WIDTH - 500 - 50, 50), (500, 300)),  # (X, Y, Ancho, Alto)
-    manager=ui_manager,
-    object_id=ObjectID(class_id='@wooden_panel', object_id='#presentation_panel'),
+# Imagen
+imagen = pygame.image.load('assets/droneless_dungeon.jpeg')
+# Convertir la imagen en una superficie compatible con pygame_gui
+superficie_imagen = pygame.Surface((500, 300), pygame.SRCALPHA)
+superficie_imagen.blit(pygame.transform.scale(imagen, (500, 300)), (0, 0))
+
+
+imagen_ui = pygame_gui.elements.UIImage(
+    relative_rect=pygame.Rect((WIDTH - 500 - 50, 50), (500, 300)),
+    image_surface=superficie_imagen,
+    manager=ui_manager
 )
 
 load_button = pygame_gui.elements.UIButton(
@@ -36,7 +43,7 @@ report_text = pygame_gui.elements.UITextBox(
     object_id=ObjectID(class_id='@text_personalized', object_id='#text_custom')
 )
 
-algorithms_to_use = ['BFS', 'UCS', 'GBFS', 'A*']
+algorithms_to_use = ['BFS', 'DFS', 'UCS', 'GBFS', 'A*']
 
 drop_down_menu = pygame_gui.elements.UIDropDownMenu(
     options_list=algorithms_to_use,
