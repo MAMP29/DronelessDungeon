@@ -24,7 +24,30 @@ class MazeLoader:
         maze = [list(map(int, line.split())) for line in data.splitlines()]
         self.maze = np.array(maze)
         self.shape = self.maze.shape
+
+        # Verificar que el laberinto no sea de tamaño 1x1
+        if self.shape[0] == 1 and self.shape[1] == 1:
+            return "Error: El laberinto debe ser más grande que 1x1"
+
+        # Verificar que haya al menos un agente (2)
+        if 2 not in self.maze:
+            return "Error: No se encontró la posición inicial del agente (número 2)"
+
+        # Verificar que haya al menos un paquete (4)
+        if 4 not in self.maze:
+            return "Error: No se encontró ningún paquete (número 4)"
+
+        # Verificar que solo contenga números válidos (0, 1, 2, 3, 4)
+        valid_values = {0, 1, 2, 3, 4}
+        unique_values = set(np.unique(self.maze))
+        invalid_values = unique_values - valid_values
+
+        if invalid_values:
+            return f"Error: El laberinto contiene valores no permitidos: {invalid_values}. Solo se permiten 0, 1, 2, 3 y 4."
+
+        # Si todas las verificaciones pasan, generar el render
         self.generate_render_maze()
+        return None
 
     def generate_render_maze(self):
 

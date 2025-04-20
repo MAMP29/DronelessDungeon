@@ -131,12 +131,19 @@ while running:
             print(f"File path picked: {event.text}")
             report_text.set_text("Aquí veras el reporte de los resultados")
             maze_loader.file_path = event.text
-            maze_loader.load_maze()
-            maze_solver = MazeSolver(maze_loader, maze_drawer)
-            tile_processor.reload_tileset()
-            maze_drawer.maze = maze_loader.render_maze
-            maze_drawer.generate_fixed_map()
-            file_dialog = None
+            control_load = maze_loader.load_maze()
+            if control_load:
+                print(control_load)
+                report_text.set_text(control_load) # Si hay algo en control_load es porque falló en cargar el laberinto
+
+            else:
+                # Si no entones fue exitoso
+                report_text.set_text("Laberinto cargado ¡Selecciona el laberinto e inicia!")
+                maze_solver = MazeSolver(maze_loader, maze_drawer)
+                tile_processor.reload_tileset()
+                maze_drawer.maze = maze_loader.render_maze
+                maze_drawer.generate_fixed_map()
+                file_dialog = None
 
         ui_manager.process_events(event)
 
