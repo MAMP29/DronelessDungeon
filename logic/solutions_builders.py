@@ -4,19 +4,18 @@ import itertools
 Esta clase proporciona funciones para reconstruir la solución obtenida por los algoritmos de búsqueda basándose en el conjunto de nodos visitados. 
 Existen dos métodos principales para este propósito, dependiendo de la estructura utilizada para almacenar los nodos visitados:
 
-1. Listas: Cuando el conjunto de visitados es una lista secuencial. Esto es útil para algoritmos como BFS y DFS (Depth-First Search), donde los nodos son explorados en un orden lineal. La reconstrucción de la solución se hace siguiendo la cadena de padres desde el nodo final hasta el nodo inicial.
+1. Listas: Cuando el conjunto de visitados es una lista secuencial. Hecha para BFS donde los nodos son explorados en un orden lineal. La reconstrucción de la solución se hace siguiendo la cadena de padres desde el nodo final hasta el nodo inicial.
 
-2. Diccionarios: Cuando el conjunto de visitados es un diccionario, utilizado en algoritmos que priorizan nodos según su costo, UCS, Greedy Search y A*. En estos casos, se recomienda usar un diccionario para almacenar los nodos visitados junto con su costo y su nodo padre, permitiendo una reconstrucción eficiente del camino óptimo.
+2. Diccionarios: Cuando el conjunto de visitados es un diccionario, utilizado en algoritmos que priorizan nodos según su costo, UCS, Greedy Search y A* y para DFS debido a su posibilidad de volver a explorar otros nodos. En estos casos, se recomienda usar un diccionario para almacenar los nodos visitados junto con su costo y su nodo padre, permitiendo una reconstrucción eficiente del camino óptimo.
 """
 
-def get_solution_from_list(rr, cc, visited, algo_type = 'bfs'):
+def get_solution_from_list(rr, cc, visited):
     """
     Reconstruye la solución cuando el conjunto de nodos visitados es una lista.
 
     Parámetros:
     - rr, cc: Coordenadas del nodo objetivo al que se quiere llegar.
     - visited: Lista de nodos visitados en orden secuencial.
-    - algo_type: Tipo de algoritmo utilizado ('bfs' o 'dfs'). (dfs no implementado aún)
 
     Retorna:
     - Una lista de coordenadas representando el camino desde el nodo inicial hasta el nodo final.

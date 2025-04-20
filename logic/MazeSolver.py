@@ -148,7 +148,7 @@ class MazeSolver:
         if self.reached_end:
             print(f"Terminado, profundidad: {self.move_count}")
             print(f"Nodos expandidos: {self.expanded_nodes}")
-            self.solution = get_solution_from_list(r, c, visited, 'bfs')
+            self.solution = get_solution_from_list(r, c, visited)
             self.run_solution()
             return {
                 "nodos_expandidos": self.expanded_nodes,
