@@ -44,6 +44,7 @@ class MazeSolver:
     def execute_algorithm(self, algorithm_name):
         algorithms = {
             "BFS": self.bfs,
+            "DFS": self.dfs,
             "UCS": self.ucs,
             "GBFS": self.gbfs,
             "A*": self.a_star,
@@ -147,7 +148,7 @@ class MazeSolver:
         if self.reached_end:
             print(f"Terminado, profundidad: {self.move_count}")
             print(f"Nodos expandidos: {self.expanded_nodes}")
-            self.solution = get_solution_from_list(r, c, visited, 'bfs')
+            self.solution = get_solution_from_list(r, c, visited)
             self.run_solution()
             return {
                 "nodos_expandidos": self.expanded_nodes,
@@ -161,7 +162,6 @@ class MazeSolver:
         return None
 
     def explore_neighbours(self, r, c, packages, cost, visited):
-
         for i in range(4):
             # Posición actual
             rr = r + self.moves_row[i]
@@ -172,7 +172,6 @@ class MazeSolver:
 
             new_state = (rr, cc, packages)
 
-
             if any(nodo[:3] == new_state for nodo in visited): continue
             if self.matriz[rr, cc] == 1: continue
 
@@ -182,6 +181,109 @@ class MazeSolver:
             self.rowCowPaDeque.append(new_state)
             visited.insert(0, new_state)
             self.nodes_next_in_layer += 1
+
+    def dfs(self):
+        print("USANDO DFS")
+        print(f"Número de objetivos alcanzados antes {self.number_of_objetives_reached}")
+        print(f"columnas {self.C} y filas {self.R}")
+        package_coords = list(zip(map(int, self.maze_packages[0]), map(int, self.maze_packages[1])))
+        print(f"COORDENADOS {package_coords}")
+
+        self.reset('bst')  # Carga una deque
+
+        start_time = time.time()
+        end_time = 0
+
+        # Estado inicial: (fila, columna, conjunto de paquetes recogidos, costo, tipo de movimiento, padre)
+        self.rowCowPaDeque.append((self.sr, self.sc, frozenset(), 0, -1, None))
+
+        # Diccionario de visitados: {(fila, columna, paquetes): (padre_coords, costo, tipo_movimiento)}
+        visited = {(self.sr, self.sc, frozenset()): (None, 0, -1)}
+
+        final_node = None
+        final_packages = None
+
+        while len(self.rowCowPaDeque) > 0:
+            r, c, packages, cost, typemoven, parent = self.rowCowPaDeque.pop()  # Pop desde el final (correcto para DFS)
+            self.expanded_nodes += 1
+
+            print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven] if typemoven != -1 else 'Inicio'} - padre={parent}")
+
+            # Verificamos si hemos alcanzado todos los objetivos
+            if len(packages) == self.number_of_objetives:
+                self.reached_end = True
+                print(
+                    f"SOLUCION: Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven] if typemoven != -1 else 'Inicio'} - padre={parent}")
+                final_node = (r, c)
+                final_packages = packages
+                print("NODO FINAL", final_node)
+                print("PAQUETES FINALES", final_packages)
+                end_time = time.time()
+                break
+
+            # Si encontramos un paquete que no hemos recogido aún
+            if self.matriz[r, c] == 4 and (r, c) not in packages:
+                # Añadimos el paquete al conjunto
+                new_packages = frozenset(list(packages) + [(r, c)])
+                print(f"Número de objetivos alcanzados {len(new_packages)}")
+                print(f"Paquete encontrado en: ({r}, {c})")
+
+                # Creamos el nuevo estado con los paquetes actualizados
+                new_state = (r, c, new_packages)
+                if new_state not in visited:
+                    # Añadimos el nuevo estado a la pila
+                    self.rowCowPaDeque.append((r, c, new_packages, cost, typemoven, parent))
+                    # Actualizamos el diccionario de visitados
+                    visited[new_state] = (parent, cost, typemoven)
+
+                    # Continuamos al siguiente nodo del bucle para explorar desde el estado actualizado
+                    continue
+
+            # Exploramos los vecinos en el orden correcto (según los operadores definidos)
+            self.explore_neighbours_dfs(r, c, packages, cost, visited)
+
+        if self.reached_end:
+            print(f"Nodos expandidos: {self.expanded_nodes}")
+            self.solution = get_solution_from_dict(self.matriz, final_node, final_packages, visited)
+            final_depth = len(self.solution) - 1  # La profundidad es el número de pasos (nodos - 1)
+            self.run_solution()
+            return {
+                "nodos_expandidos": self.expanded_nodes,
+                "profundidad": final_depth,
+                "tiempo": end_time - start_time,
+                "costo": None  # Añadimos el costo final a la respuesta
+            }
+
+        print("No se encontró la solución")
+        print(f"Movimientos {self.move_count}")
+        return None
+
+    def explore_neighbours_dfs(self, r, c, packages, cost, visited):
+        # Explorar vecinos en el orden definido por moves_row y moves_column
+        # Esto garantiza que se respete el orden de los operadores
+        for i in range(4):
+            rr = r + self.moves_row[i]
+            cc = c + self.moves_column[i]
+
+            # Verificaciones de límites y obstáculos
+            if rr < 0 or cc < 0: continue
+            if rr >= self.R or cc >= self.C: continue
+            if self.matriz[rr, cc] == 1: continue  # Evitamos obstáculos
+
+            new_state = (rr, cc, packages)
+
+            # Calculamos el costo adicional
+            additional_cost = 1
+            if self.matriz[rr, cc] == "Campo electromagnético": additional_cost += 8
+            new_cost = cost + additional_cost
+
+            # Si no hemos visitado este estado, lo añadimos a la pila
+            if new_state not in visited:
+                print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
+                # Añadir a la pila - para DFS agregamos al final para que sea el próximo en salir
+                self.rowCowPaDeque.append((rr, cc, packages, new_cost, i, (int(r), int(c))))
+                # Actualizamos visited con el formato correcto
+                visited[new_state] = ((int(r), int(c)), new_cost, i)
 
     def ucs(self):
         print("USANDO UCS")
@@ -239,6 +341,7 @@ class MazeSolver:
             print(f"Terminado, profundidad: {self.move_count}")
             print(f"Nodos expandidos: {self.expanded_nodes}")
             self.solution = get_solution_from_dict(self.matriz, final_node, final_packages, visited)
+            print("NUEVA SOLUCION", self.solution)
             final_depth = len(self.solution) - 1  # La profundidad es el número de pasos (nodos - 1)
             self.run_solution()
             return {
@@ -271,6 +374,7 @@ class MazeSolver:
                 print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
                 heapq.heappush(self.rowCowPaDeque, (new_cost, counter, rr, cc, packages, i, (int(r), int(c))))
                 visited[new_state] = ((int(r), int(c)), new_cost, i)
+
 
     def gbfs(self):
         print("USANDO GBFS")
@@ -331,7 +435,7 @@ class MazeSolver:
             self.run_solution()
             return {
                 "nodos_expandidos": self.expanded_nodes,
-                "profundidad": self.move_count,
+                "profundidad": final_depth,
                 "tiempo": end_time - start_time,
                 "costo": final_depth
             }
