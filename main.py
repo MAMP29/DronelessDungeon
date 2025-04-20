@@ -1,3 +1,6 @@
+import os
+import random
+
 import pygame
 import pygame_gui
 from pygame_gui.core import ObjectID
@@ -5,6 +8,7 @@ from logic.MazeLoader import MazeLoader
 from logic.MazeSolver import MazeSolver
 from logic.TileProcessor import TileProcessor
 from logic.MazeDrawer import MazeDrawer
+from music_controller import play_random_song, toggle_mute, skip_song
 
 pygame.init()
 
@@ -15,6 +19,9 @@ pygame.display.set_caption("RatCheese")
 report = "Aquí veras el reporte de los resultados"
 
 ui_manager = pygame_gui.UIManager((WIDTH, HEIGHT), "assets/themes.json")
+
+pygame.mixer.init()
+
 
 # Imagen
 imagen = pygame.image.load('assets/droneless_dungeon.jpeg')
@@ -60,6 +67,20 @@ start_button = pygame_gui.elements.UIButton(
     object_id=ObjectID(class_id='@wooden_button', object_id='#start_button'),
 )
 
+# Crear un botón para silenciar/activar la música
+mute_button = pygame_gui.elements.UIButton(
+    relative_rect=pygame.Rect((WIDTH - 100, 10), (80, 30)),
+    text='Silenciar',
+    manager=ui_manager
+)
+
+# Crear un botón para saltar a la siguiente canción
+next_song_button = pygame_gui.elements.UIButton(
+    relative_rect=pygame.Rect((WIDTH - 190, 10), (80, 30)),
+    text='Siguiente',
+    manager=ui_manager
+)
+
 tile_processor = TileProcessor("assets/tiles/dungeon_sheet.png", "assets/sprites/electric_field1.png",
                                TILE_SIZE, scale_factor=4, danger_file2="assets/sprites/electric_field2.png",
                                danger_file3="assets/sprites/electric_field3.png")
@@ -69,8 +90,15 @@ maze_solver = 0
 
 clock = pygame.time.Clock()
 running = True
+play_random_song()
+
 while running:
     time_delta = clock.tick(60) / 1000.0
+
+    # Verificar si la música ha terminado para reproducir la siguiente
+    if not pygame.mixer.music.get_busy():
+        play_random_song()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -83,6 +111,14 @@ while running:
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
 
                 else: report_text.set_text("Carga un mapa para resolver")
+
+            if event.ui_element == mute_button:
+                is_muted = toggle_mute()
+                # Actualizar el texto del botón según el estado
+                mute_button.set_text('Activar' if is_muted else 'Silenciar')
+
+            if event.ui_element == next_song_button:
+                skip_song()
 
             if event.ui_element == load_button:
                 file_dialog = pygame_gui.windows.UIFileDialog(
@@ -113,5 +149,6 @@ while running:
     ui_manager.draw_ui(screen)
     pygame.display.flip()
 
+pygame.mixer.music.stop()
 pygame.quit()
 
