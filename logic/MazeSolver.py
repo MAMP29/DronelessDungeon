@@ -104,6 +104,7 @@ class MazeSolver:
         self.rowCowPaDeque.append((self.sr, self.sc, frozenset(), 0, -1, None))
         visited = [[self.sr, self.sc, frozenset(), 0, -1, None]]
 
+        final_cost = None
 
         while len(self.rowCowPaDeque) > 0:  # Puede ser len(self.cq) > 0 pues se mueven igual
             # Extraemos las posiciones
@@ -127,6 +128,7 @@ class MazeSolver:
                 if len(new_packages) == self.number_of_objetives:
                     self.reached_end = True
                     # print(f"S quedó en: ({r}, {c})")
+                    final_cost = cost
                     print(f"SOLUCION: Nodo=({r},{c}) - paquetes={len(new_packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
                     end_time = time.time()
                     break
@@ -154,7 +156,7 @@ class MazeSolver:
                 "nodos_expandidos": self.expanded_nodes,
                 "profundidad": self.move_count,
                 "tiempo": end_time - start_time,
-                "costo": None
+                "costo": final_cost
             }
 
         print("No se encontró la solución")
@@ -175,9 +177,11 @@ class MazeSolver:
             if any(nodo[:3] == new_state for nodo in visited): continue
             if self.matriz[rr, cc] == 1: continue
 
-            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": cost += 8  # Tiene en cuenta el costo del campo electromagnético
+            additional_cost = 1
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
+            new_cost = cost + additional_cost
 
-            new_state = new_state + (cost + 1, i, (int(r), int(c)))
+            new_state = new_state + (new_cost, i, (int(r), int(c)))
             self.rowCowPaDeque.append(new_state)
             visited.insert(0, new_state)
             self.nodes_next_in_layer += 1
@@ -201,6 +205,7 @@ class MazeSolver:
         visited = {(self.sr, self.sc, frozenset()): (None, 0, -1)}
 
         final_node = None
+        final_cost = None
         final_packages = None
 
         while len(self.rowCowPaDeque) > 0:
@@ -212,9 +217,9 @@ class MazeSolver:
             # Verificamos si hemos alcanzado todos los objetivos
             if len(packages) == self.number_of_objetives:
                 self.reached_end = True
-                print(
-                    f"SOLUCION: Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven] if typemoven != -1 else 'Inicio'} - padre={parent}")
+                print(f"SOLUCION: Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven] if typemoven != -1 else 'Inicio'} - padre={parent}")
                 final_node = (r, c)
+                final_cost = cost
                 final_packages = packages
                 print("NODO FINAL", final_node)
                 print("PAQUETES FINALES", final_packages)
@@ -251,7 +256,7 @@ class MazeSolver:
                 "nodos_expandidos": self.expanded_nodes,
                 "profundidad": final_depth,
                 "tiempo": end_time - start_time,
-                "costo": None  # Añadimos el costo final a la respuesta
+                "costo": final_cost  # Añadimos el costo final a la respuesta
             }
 
         print("No se encontró la solución")
@@ -274,7 +279,7 @@ class MazeSolver:
 
             # Calculamos el costo adicional
             additional_cost = 1
-            if self.matriz[rr, cc] == "Campo electromagnético": additional_cost += 8
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
             new_cost = cost + additional_cost
 
             # Si no hemos visitado este estado, lo añadimos a la pila
@@ -390,16 +395,17 @@ class MazeSolver:
         end_time = 0
         counter = 0
 
-        heapq.heappush(self.rowCowPaDeque, (0, counter, self.sr, self.sc, frozenset(), -1, None))
+        heapq.heappush(self.rowCowPaDeque, (0, counter, self.sr, self.sc, frozenset(), 0, -1, None))
 
         visited = {(self.sr, self.sc, frozenset()): (None, 0, -1)}
 
         final_node = None
         final_heuristic_value = None
+        final_cost = None
         final_packages = None
 
         while len(self.rowCowPaDeque) > 0:
-            heuristic_value, _, r, c, packages, typemoven, parent = heapq.heappop(self.rowCowPaDeque)
+            heuristic_value, _, r, c, packages, cost, typemoven, parent = heapq.heappop(self.rowCowPaDeque)
             self.expanded_nodes += 1
 
             current_state = (r, c, packages)
@@ -413,6 +419,7 @@ class MazeSolver:
                     self.reached_end = True
                     print(f"SOLUCION: Nodo=({r},{c}) - paquetes={len(new_packages)} - valor heuristico={heuristic_value} - movimiento={self.type_moven[typemoven]} - padre={parent}")
                     final_node = (r, c)
+                    final_cost = cost
                     final_heuristic_value = heuristic_value
                     final_packages = new_packages
                     end_time = time.time()
@@ -421,11 +428,11 @@ class MazeSolver:
                 new_state = (r, c, new_packages)
                 if new_state not in visited or heuristic_value < visited[new_state][1]:
                     counter += 1
-                    heapq.heappush(self.rowCowPaDeque, (heuristic_value, counter, r, c, new_packages, typemoven, (int(r), int(c))))
+                    heapq.heappush(self.rowCowPaDeque, (heuristic_value, counter, r, c, new_packages, cost, typemoven, (int(r), int(c))))
                     visited[new_state] = ((int(r), int(c)), heuristic_value, typemoven)
 
             print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={heuristic_value} - movimiento={self.type_moven[typemoven]} - padre={parent}")
-            self.explore_neighbours_gbfs(r, c, packages, visited, counter, package_coords)
+            self.explore_neighbours_gbfs(r, c, packages, visited, counter, package_coords, cost)
 
         if self.reached_end:
             print(f"Terminado, costo: {final_heuristic_value}")
@@ -437,7 +444,7 @@ class MazeSolver:
                 "nodos_expandidos": self.expanded_nodes,
                 "profundidad": final_depth,
                 "tiempo": end_time - start_time,
-                "costo": final_depth
+                "costo": final_cost
             }
 
         print("No se encontró la solución")
@@ -510,7 +517,7 @@ class MazeSolver:
         return None
 
 
-    def explore_neighbours_gbfs(self, r, c, packages, visited, counter, package_coords):
+    def explore_neighbours_gbfs(self, r, c, packages, visited, counter, package_coords, cost):
         for i in range(4):
             rr = r + self.moves_row[i]
             cc = c + self.moves_column[i]
@@ -523,10 +530,14 @@ class MazeSolver:
 
             heuristic_value = self.manhattan_heuristic(rr, cc, package_coords)
 
+            additional_cost = 1
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
+            new_cost = additional_cost + cost
+
             if new_state not in visited or heuristic_value < visited[new_state][1]:
                 counter += 1
                 print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
-                heapq.heappush(self.rowCowPaDeque, (heuristic_value, counter, rr, cc, packages, i, (int(r), int(c))))
+                heapq.heappush(self.rowCowPaDeque, (heuristic_value, counter, rr, cc, packages, new_cost, i, (int(r), int(c))))
                 visited[new_state] = ((int(r), int(c)), heuristic_value, i)
 
 

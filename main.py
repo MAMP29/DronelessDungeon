@@ -138,7 +138,7 @@ while running:
 
             else:
                 # Si no entones fue exitoso
-                report_text.set_text("Laberinto cargado ¡Selecciona el laberinto e inicia!")
+                report_text.set_text("Laberinto cargado ¡Selecciona el algoritmo e inicia!")
                 maze_solver = MazeSolver(maze_loader, maze_drawer)
                 tile_processor.reload_tileset()
                 maze_drawer.maze = maze_loader.render_maze

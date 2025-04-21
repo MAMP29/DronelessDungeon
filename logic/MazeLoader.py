@@ -20,8 +20,12 @@ class MazeLoader:
             return file.read()
 
     def load_maze(self):
-        data = self.load_file()
-        maze = [list(map(int, line.split())) for line in data.splitlines()]
+        try:
+            data = self.load_file()
+            maze = [list(map(int, line.split())) for line in data.splitlines()]
+        except Exception:
+            return "El archivo cargado no es válido"
+
         self.maze = np.array(maze)
         self.shape = self.maze.shape
 
