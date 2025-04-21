@@ -44,6 +44,7 @@ class MazeSolver:
     def execute_algorithm(self, algorithm_name):
         algorithms = {
             "BFS": self.bfs,
+            "DFS": self.dfs,
             "UCS": self.ucs,
             "GBFS": self.gbfs,
             "A*": self.a_star,
@@ -160,6 +161,109 @@ class MazeSolver:
         print(f"Movimientos {self.move_count}")
         return None
 
+
+    def dfs(self):
+        print("USANDO DFS")
+        print(f"Numero de objetivos {self.number_of_objetives}")
+        print(f"Número de objetivos alcanzados antes {self.number_of_objetives_reached}")
+        print(f"columnas {self.C} y filas {self.R}")
+
+        self.reset("bst")
+
+        # visited = set()
+        # cada nodo tiene (row, column, packages, cost, type moven , parent)
+
+        start_time = time.time()
+        end_time = 0
+
+        self.rowCowPaDeque.append((self.sr, self.sc, frozenset(), 0, -1, None))
+        visited = [[self.sr, self.sc, frozenset(), 0, -1, None]]
+
+
+        while len(self.rowCowPaDeque) > 0:  # Puede ser len(self.cq) > 0 pues se mueven igual
+            # Extraemos las posiciones
+            r, c, packages, cost, typemoven, parent = self.rowCowPaDeque.pop()
+            self.expanded_nodes += 1  # Se expandió un nodo
+
+            if len(packages) > self.number_of_objetives_reached:
+                print(f"Paquete encontrado en: ({r}, {c})")
+                print(f"Número de objetivos alcanzados: {len(packages)}")
+                self.number_of_objetives_reached = len(packages)
+
+                if len(packages) == self.number_of_objetives:
+                    self.reached_end = True
+                    print(f"SOLUCION: Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
+                    end_time = time.time()
+                    break
+          
+
+            # print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
+            self.explore_neighbours_dfs(r, c, packages, cost, visited)
+            self.nodes_left_in_layer -= 1  # Quita un nodo restante
+            print(f"nodos  {self.nodes_left_in_layer}")
+
+            # Controla el avance al siguiente nivel, solo carga los que siguen al actual y suma profundidad
+            if self.nodes_left_in_layer == 0:
+                self.nodes_left_in_layer = self.nodes_next_in_layer
+                self.nodes_next_in_layer = 0  # Reseteamos los nodos siguientes
+                self.move_count += 1
+
+        # print(f"Fuera de ciclo f{type(self.matriz)}")
+
+        if self.reached_end:
+            print(f"Terminado, profundidad: {self.move_count}")
+            print(f"Nodos expandidos: {self.expanded_nodes}")
+            self.solution = get_solution_from_list(r, c, visited, 'dfs')
+            self.run_solution()
+            return {
+                "nodos_expandidos": self.expanded_nodes,
+                "profundidad": self.move_count,
+                "tiempo": end_time - start_time,
+                "costo": None
+            }
+
+        print("No se encontró la solución")
+        print(f"Movimientos {self.move_count}")
+        return None
+    
+    def explore_neighbours_dfs(self, r, c, packages, cost, visited):
+      for i in range(4):
+        rr = r + self.moves_row[i]
+        cc = c + self.moves_column[i]
+
+        if rr < 0 or cc < 0 or rr >= self.R or cc >= self.C:
+            continue
+
+        # Check for obstacle
+        if self.matriz[rr, cc] == 1:
+            continue
+
+        #  collect package if stepping on a package node
+        if self.matriz[rr, cc] == 4 and (rr, cc) not in packages:
+            new_packages = frozenset(list(packages) + [(rr, cc)])
+        else:
+            new_packages = packages
+
+        # define new unique state key with updated packages
+        new_state_key = (rr, cc, new_packages)
+
+        if any(nodo[:3] == new_state_key for nodo in visited):
+            continue
+
+        # Compute cost
+        new_cost = cost + 1
+        if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético":
+            new_cost += 8
+
+        # Construct full new state
+        full_new_state = (rr, cc, new_packages, new_cost, i, (int(r), int(c)))
+
+        self.rowCowPaDeque.append(full_new_state)
+        visited.insert(0, full_new_state)
+        self.nodes_next_in_layer += 1
+
+    
+    
     def explore_neighbours(self, r, c, packages, cost, visited):
 
         for i in range(4):

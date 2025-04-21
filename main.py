@@ -1,8 +1,10 @@
 import pygame
 import pygame_gui
+from pygame_gui import UI_DROP_DOWN_MENU_CHANGED
 from pygame_gui.core import ObjectID
 from logic.MazeLoader import MazeLoader
 from logic.MazeSolver import MazeSolver
+from logic.MazeSolverProf import MazeSolverProf
 from logic.TileProcessor import TileProcessor
 from logic.MazeDrawer import MazeDrawer
 
@@ -27,6 +29,15 @@ load_button = pygame_gui.elements.UIButton(
     text="Load",
     manager=ui_manager,
     object_id=ObjectID(class_id='@wooden_button', object_id='#load_button'),
+)
+
+
+dropdown_menu = pygame_gui.elements.UIDropDownMenu(
+    options_list=["BFS", "DFS", "UCS", "GBFS", "A*"],
+    starting_option="BFS",
+    relative_rect=pygame.Rect((WIDTH - 500 - 50, HEIGHT - 160), (500, 50)),
+    manager=ui_manager,
+    object_id=ObjectID(class_id='@wooden_dropdown', object_id='#difficulty_dropdown')
 )
 
 start_button = pygame_gui.elements.UIButton(
@@ -57,10 +68,15 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        
+        if event.type == UI_DROP_DOWN_MENU_CHANGED:
+            if event.ui_element == dropdown_menu:
+                selected_algorithm = event.text
+        
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == start_button:
                 if maze_solver:
-                    report = maze_solver.execute_algorithm('GBFS')
+                    report = maze_solver.execute_algorithm(selected_algorithm)
 
                     text_effect.set_text(report)
                     pygame.display.flip()  # Asegurar que la pantalla se actualice después del BFS
