@@ -102,37 +102,45 @@ class MazeSolver:
         end_time = 0
 
         self.rowCowPaDeque.append((self.sr, self.sc, frozenset(), 0, -1, None))
-        visited = [[self.sr, self.sc, frozenset(), 0, -1, None]]
+        visited = {(self.sr, self.sc, frozenset()): (None, 0, -1)}
 
+        final_node = None
         final_cost = None
+        final_packages = None
 
         while len(self.rowCowPaDeque) > 0:  # Puede ser len(self.cq) > 0 pues se mueven igual
             # Extraemos las posiciones
             r, c, packages, cost, typemoven, parent = self.rowCowPaDeque.popleft()
             self.expanded_nodes += 1  # Se expandió un nodo
 
+            # Verificamos si hemos alcanzado todos los objetivos
+            if len(packages) == self.number_of_objetives:
+                self.reached_end = True
+                print(f"SOLUCION: Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven] if typemoven != -1 else 'Inicio'} - padre={parent}")
+                final_node = (r, c)
+                final_cost = cost
+                final_packages = packages
+                print("NODO FINAL", final_node)
+                print("PAQUETES FINALES", final_packages)
+                end_time = time.time()
+                break
 
             if self.matriz[r, c] == 4 and (r, c) not in packages:
-
+                # Añadimos el paquete al conjunto
                 new_packages = frozenset(list(packages) + [(r, c)])
-
-                print(f"Número de objetivos alcanzados {len(packages)}")
+                print(f"Número de objetivos alcanzados {len(new_packages)}")
                 print(f"Paquete encontrado en: ({r}, {c})")
 
-                new_state = (r, c, new_packages, cost, typemoven, parent)
-                self.rowCowPaDeque.append(new_state)
-                visited.insert(0, new_state)
-                self.nodes_next_in_layer += 1
+                # Creamos el nuevo estado con los paquetes actualizados
+                new_state = (r, c, new_packages)
+                if new_state not in visited:
+                    # Añadimos el nuevo estado a la pila
+                    self.rowCowPaDeque.append((r, c, new_packages, cost, typemoven, parent))
+                    # Actualizamos el diccionario de visitados
+                    visited[new_state] = (parent, cost, typemoven)
 
-
-                if len(new_packages) == self.number_of_objetives:
-                    self.reached_end = True
-                    # print(f"S quedó en: ({r}, {c})")
-                    final_cost = cost
-                    print(f"SOLUCION: Nodo=({r},{c}) - paquetes={len(new_packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
-                    end_time = time.time()
-                    break
-                # print(f"En paquete 2 {type(self.matriz)}")
+                    # Continuamos al siguiente nodo del bucle para explorar desde el estado actualizado
+                    continue
 
             # print(f"Nodo=({r},{c}) - paquetes={len(packages)} - costo={cost} - movimiento={self.type_moven[typemoven]} - padre={parent}")
             self.explore_neighbours(r, c, packages, cost, visited)
@@ -150,7 +158,7 @@ class MazeSolver:
         if self.reached_end:
             print(f"Terminado, profundidad: {self.move_count}")
             print(f"Nodos expandidos: {self.expanded_nodes}")
-            self.solution = get_solution_from_list(r, c, visited)
+            self.solution = get_solution_from_dict(self.matriz, final_node, final_packages, visited)
             self.run_solution()
             return {
                 "nodos_expandidos": self.expanded_nodes,
@@ -178,13 +186,16 @@ class MazeSolver:
             if self.matriz[rr, cc] == 1: continue
 
             additional_cost = 1
-            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 7
             new_cost = cost + additional_cost
 
-            new_state = new_state + (new_cost, i, (int(r), int(c)))
-            self.rowCowPaDeque.append(new_state)
-            visited.insert(0, new_state)
-            self.nodes_next_in_layer += 1
+            if new_state not in visited:
+                print(f"Vecino explorado: ({rr}, {cc}) ; Casilla: " + self.type_box[self.matriz[rr, cc]])
+                # Añadir a la pila - para DFS agregamos al final para que sea el próximo en salir
+                self.rowCowPaDeque.append((rr, cc, packages, new_cost, i, (int(r), int(c))))
+                # Actualizamos visited con el formato correcto
+                visited[new_state] = ((int(r), int(c)), new_cost, i)
+                self.nodes_next_in_layer += 1
 
     def dfs(self):
         print("USANDO DFS")
@@ -279,7 +290,7 @@ class MazeSolver:
 
             # Calculamos el costo adicional
             additional_cost = 1
-            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 7
             new_cost = cost + additional_cost
 
             # Si no hemos visitado este estado, lo añadimos a la pila
@@ -371,7 +382,7 @@ class MazeSolver:
             new_state = (rr, cc, packages)
 
             additional_cost = 1
-            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 7 # es 8 porque cuenta el anterior
             new_cost = additional_cost + cost
 
             if new_state not in visited or new_cost < visited[new_state][1]:
@@ -490,7 +501,7 @@ class MazeSolver:
                 cc = c + self.moves_column[i]
                 if 0 <= rr < self.R and 0 <= cc < self.C and self.matriz[rr, cc] != 1:
                     new_state = (rr, cc, packages)
-                    move_cost = 9 if self.matriz[rr, cc] == 3 else 1
+                    move_cost = 8 if self.matriz[rr, cc] == 3 else 1
                     new_g = g + move_cost
                     new_h = self.manhattan_heuristic(rr, cc, [p for p in package_coords if p not in packages])
                     new_f = new_g + new_h
@@ -531,7 +542,7 @@ class MazeSolver:
             heuristic_value = self.manhattan_heuristic(rr, cc, package_coords)
 
             additional_cost = 1
-            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 7
             new_cost = additional_cost + cost
 
             if new_state not in visited or heuristic_value < visited[new_state][1]:
