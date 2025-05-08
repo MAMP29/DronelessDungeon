@@ -178,7 +178,7 @@ class MazeSolver:
             if self.matriz[rr, cc] == 1: continue
 
             additional_cost = 1
-            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 7
             new_cost = cost + additional_cost
 
             new_state = new_state + (new_cost, i, (int(r), int(c)))
@@ -279,7 +279,7 @@ class MazeSolver:
 
             # Calculamos el costo adicional
             additional_cost = 1
-            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 7
             new_cost = cost + additional_cost
 
             # Si no hemos visitado este estado, lo añadimos a la pila
@@ -371,7 +371,7 @@ class MazeSolver:
             new_state = (rr, cc, packages)
 
             additional_cost = 1
-            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 7
             new_cost = additional_cost + cost
 
             if new_state not in visited or new_cost < visited[new_state][1]:
@@ -490,7 +490,7 @@ class MazeSolver:
                 cc = c + self.moves_column[i]
                 if 0 <= rr < self.R and 0 <= cc < self.C and self.matriz[rr, cc] != 1:
                     new_state = (rr, cc, packages)
-                    move_cost = 9 if self.matriz[rr, cc] == 3 else 1
+                    move_cost = 8 if self.matriz[rr, cc] == 3 else 1
                     new_g = g + move_cost
                     new_h = self.manhattan_heuristic(rr, cc, [p for p in package_coords if p not in packages])
                     new_f = new_g + new_h
@@ -531,7 +531,7 @@ class MazeSolver:
             heuristic_value = self.manhattan_heuristic(rr, cc, package_coords)
 
             additional_cost = 1
-            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 8
+            if self.type_box[self.matriz[rr, cc]] == "Campo electromagnético": additional_cost += 7
             new_cost = additional_cost + cost
 
             if new_state not in visited or heuristic_value < visited[new_state][1]:
